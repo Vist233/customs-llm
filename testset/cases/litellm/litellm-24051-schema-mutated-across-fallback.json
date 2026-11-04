@@ -1,0 +1,63 @@
+{
+  "id": "litellm-24051-schema-mutated-across-fallback",
+  "title": "Gemini schema cleanup mutates the shared tool dict and breaks the OpenAI fallback",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 24051,
+    "url": "https://github.com/BerriAI/litellm/issues/24051",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "gemini then openai fallback"
+  },
+  "category": "state_mutation",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "primary-with-fallback",
+      "messages": [
+        {
+          "role": "user",
+          "content": "reset"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "reset_kernel",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            }
+          }
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "present",
+      "out": "$.tools[0].function.parameters.properties",
+      "why": "OpenAI rejects object schemas without properties"
+    }
+  ],
+  "observed": "After the Gemini attempt pops the empty properties from the shared dict, the fallback request to OpenAI carries a schema without properties and returns 400.",
+  "preconditions": [
+    "router with fallback gemini -> openai",
+    "first upstream (gemini) returns a retryable error",
+    "assertion applies to the final upstream request"
+  ]
+}

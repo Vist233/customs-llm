@@ -1,0 +1,82 @@
+{
+  "id": "litellm-41913-parallel-tool-calls-false-dropped",
+  "title": "parallel_tool_calls: false is dropped for Gemini",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 41913,
+    "url": "https://github.com/BerriAI/litellm/issues/41913",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "gemini"
+  },
+  "category": "field_dropped",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "gemini_generate"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "gem",
+      "messages": [
+        {
+          "role": "user",
+          "content": "weather in two cities"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "description": "Get weather",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
+            }
+          }
+        }
+      ],
+      "tool_choice": {
+        "type": "function",
+        "function": {
+          "name": "get_weather"
+        }
+      },
+      "parallel_tool_calls": false
+    }
+  },
+  "assertions": [
+    {
+      "op": "any_of",
+      "why": "Gemini has no native flag; any carrier of the single-call restriction is acceptable, silence is not",
+      "items": [
+        {
+          "op": "contains_anywhere",
+          "text": "parallel"
+        },
+        {
+          "op": "contains_anywhere",
+          "text": "allowed_function_names"
+        }
+      ]
+    }
+  ],
+  "observed": "Named tool_choice survives as mode ANY plus allowed_function_names, but nothing carries the single-call restriction.",
+  "notes": "Weak check: allowed_function_names alone does not restrict call count. Needs a human decision on what counts as a faithful encoding."
+}

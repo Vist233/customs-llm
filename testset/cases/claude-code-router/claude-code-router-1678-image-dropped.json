@@ -1,0 +1,59 @@
+{
+  "id": "claude-code-router-1678-image-dropped",
+  "title": "Images are silently dropped translating Anthropic messages to OpenAI chat",
+  "source": {
+    "repo": "musistudio/claude-code-router",
+    "issue": 1678,
+    "url": "https://github.com/musistudio/claude-code-router/issues/1678",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "claude-code-router",
+    "route": "custom openai-compatible relay"
+  },
+  "category": "content_block_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_chat"
+  },
+  "severity": "critical",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "myprovider,my-model",
+      "max_tokens": 100,
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "image",
+              "source": {
+                "type": "base64",
+                "media_type": "image/png",
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+              }
+            },
+            {
+              "type": "text",
+              "text": "What color is this image? One word."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==",
+      "why": "image bytes must reach the upstream as image_url data URI"
+    }
+  ],
+  "observed": "HTTP 200 and the model answers as if no image was sent; input token count is 61 lower than the direct request."
+}

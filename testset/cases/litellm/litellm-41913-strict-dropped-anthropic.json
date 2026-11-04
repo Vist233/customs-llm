@@ -1,0 +1,65 @@
+{
+  "id": "litellm-41913-strict-dropped-anthropic",
+  "title": "strict on a tool is dropped on the Anthropic route",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 41913,
+    "url": "https://github.com/BerriAI/litellm/issues/41913",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "anthropic"
+  },
+  "category": "field_dropped",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "anthropic_messages"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "cld",
+      "max_tokens": 64,
+      "messages": [
+        {
+          "role": "user",
+          "content": "weather?"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "strict": true,
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "\"strict\":true"
+    }
+  ],
+  "observed": "strict is absent both on the tool and inside input_schema; the call succeeds so nothing signals the constraint is not in force."
+}

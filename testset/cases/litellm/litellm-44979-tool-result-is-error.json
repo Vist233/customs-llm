@@ -1,0 +1,86 @@
+{
+  "id": "litellm-44979-tool-result-is-error",
+  "title": "Anthropic tool_result.is_error is dropped when translated to OpenAI tool messages",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 44979,
+    "url": "https://github.com/BerriAI/litellm/issues/44979",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "anthropic -> openai"
+  },
+  "category": "semantic_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "m",
+      "max_tokens": 64,
+      "messages": [
+        {
+          "role": "user",
+          "content": "deploy it"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "toolu_1",
+              "name": "deploy",
+              "input": {}
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_1",
+              "is_error": true,
+              "content": "deploy failed: exit 1"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "deploy failed: exit 1",
+      "why": "tool output text must survive"
+    },
+    {
+      "op": "any_of",
+      "why": "Chat has no error field on tool messages, so any encoding of the error bit is acceptable",
+      "items": [
+        {
+          "op": "contains_anywhere",
+          "text": "[tool error]"
+        },
+        {
+          "op": "contains_anywhere",
+          "text": "\"error\":"
+        },
+        {
+          "op": "contains_anywhere",
+          "text": "is_error"
+        }
+      ]
+    }
+  ],
+  "observed": "The outbound role=tool message carries only tool_call_id and content; nothing marks the result as an error, so some models report the failed deploy as a success."
+}

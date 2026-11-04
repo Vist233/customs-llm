@@ -1,0 +1,64 @@
+{
+  "id": "litellm-43737-anthropic-document-block",
+  "title": "Anthropic document content blocks are silently dropped on Bedrock Converse",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 43737,
+    "url": "https://github.com/BerriAI/litellm/issues/43737",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "bedrock/converse"
+  },
+  "category": "content_block_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "bedrock_converse"
+  },
+  "severity": "critical",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "claude-sonnet-5",
+      "max_tokens": 64,
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "document",
+              "source": {
+                "type": "content",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "This is the document content the model should see."
+                  }
+                ]
+              },
+              "title": "My Document",
+              "context": "Use this to answer the question."
+            },
+            {
+              "type": "text",
+              "text": "Summarize the document."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "This is the document content the model should see."
+    }
+  ],
+  "observed": "Model receives only the trailing text block and answers as if no document was given. No error or warning."
+}

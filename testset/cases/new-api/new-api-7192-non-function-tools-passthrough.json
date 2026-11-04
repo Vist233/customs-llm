@@ -1,0 +1,46 @@
+{
+  "id": "new-api-7192-non-function-tools-passthrough",
+  "title": "Responses to Chat conversion passes non-function tools through unchanged",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 7192,
+    "url": "https://github.com/QuantumNous/new-api/issues/7192",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "new-api",
+    "route": "advanced custom channel"
+  },
+  "category": "untranslatable_passed_through",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "m",
+      "input": "hi",
+      "max_output_tokens": 8,
+      "tools": [
+        {
+          "type": "web_search"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "absent_anywhere",
+      "text": "\"type\":\"web_search\"",
+      "why": "chat/completions only accepts type=function; unmappable tools must be dropped or rejected locally"
+    }
+  ],
+  "observed": "Upstream returns 400 expected \"function\" at tools.0.type; every Codex CLI request carries such tools."
+}

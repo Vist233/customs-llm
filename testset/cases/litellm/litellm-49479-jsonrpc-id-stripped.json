@@ -1,0 +1,56 @@
+{
+  "id": "litellm-49479-jsonrpc-id-stripped",
+  "title": "pass_through_endpoints strips the JSON-RPC id from request bodies",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 49479,
+    "url": "https://github.com/BerriAI/litellm/issues/49479",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "pass-through endpoint"
+  },
+  "category": "field_dropped",
+  "direction": "request",
+  "protocol": {
+    "in": "jsonrpc",
+    "out": "jsonrpc"
+  },
+  "severity": "critical",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/canon-skills",
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "skills/list",
+      "params": {},
+      "canary": "x"
+    },
+    "headers": {
+      "authorization": "Bearer sk-test"
+    }
+  },
+  "assertions": [
+    {
+      "op": "preserved",
+      "in": "$.id",
+      "out": "$.id",
+      "why": "JSON-RPC responses must echo the request id"
+    },
+    {
+      "op": "preserved",
+      "in": "$.canary",
+      "out": "$.canary",
+      "why": "control: a non-colliding field survives, proving it is a name collision"
+    }
+  ],
+  "observed": "Upstream receives the body without id; every response id becomes null and the client cannot correlate. Cause is a pop of every top-level key found in the gateway's internal param list.",
+  "preconditions": [
+    "pass_through_endpoints entry for /canon-skills pointing at a recording stub"
+  ]
+}

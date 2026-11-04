@@ -1,0 +1,47 @@
+{
+  "id": "litellm-49574-minimax-reasoning-effort",
+  "title": "Top-level reasoning_effort is silently dropped for MiniMax",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 49574,
+    "url": "https://github.com/BerriAI/litellm/issues/49574",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "minimax/MiniMax-M3.1-Flash"
+  },
+  "category": "field_dropped",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "minimax-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "..."
+        }
+      ],
+      "max_tokens": 1500,
+      "reasoning_effort": "low"
+    }
+  },
+  "assertions": [
+    {
+      "op": "preserved",
+      "in": "$.reasoning_effort",
+      "out": "$.reasoning_effort"
+    }
+  ],
+  "observed": "reasoning_tokens are identical for low and high; the same value passed through extra_body works, proving the drop is on the gateway side."
+}

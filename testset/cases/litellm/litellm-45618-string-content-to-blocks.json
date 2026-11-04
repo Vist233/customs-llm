@@ -1,0 +1,48 @@
+{
+  "id": "litellm-45618-string-content-to-blocks",
+  "title": "String user content is rewritten to a list of text blocks by the Responses bridge",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 45618,
+    "url": "https://github.com/BerriAI/litellm/issues/45618",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "databricks via chat->responses->chat bridge"
+  },
+  "category": "format_shape_changed",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "databricks-model",
+      "response_format": {
+        "type": "json_object"
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "Reply in JSON with key a. hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "type_is",
+      "out": "$.messages[0].content",
+      "value": "string"
+    }
+  ],
+  "observed": "Databricks json_object validation rejects list-form content with a misleading 'must contain the word json' error even though the word is present."
+}

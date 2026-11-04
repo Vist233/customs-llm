@@ -1,0 +1,65 @@
+{
+  "id": "new-api-8048-injected-placeholder-text",
+  "title": "Chat to Claude conversion injects a \"...\" text block into tool_use-only assistant turns",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 8048,
+    "url": "https://github.com/QuantumNous/new-api/issues/8048",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "new-api",
+    "route": "claude"
+  },
+  "category": "field_injected",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "anthropic_messages"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "m",
+      "max_tokens": 64,
+      "messages": [
+        {
+          "role": "user",
+          "content": "list files"
+        },
+        {
+          "role": "assistant",
+          "content": "",
+          "tool_calls": [
+            {
+              "id": "call_1",
+              "type": "function",
+              "function": {
+                "name": "ls",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_1",
+          "content": "a.txt"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "absent_anywhere",
+      "text": "\"text\":\"...\"",
+      "why": "a placeholder text block must not be invented"
+    }
+  ],
+  "observed": "An assistant turn with only tool_calls gets a fabricated text block \"...\" because the emptiness check ignores tool_calls."
+}

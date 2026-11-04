@@ -1,0 +1,54 @@
+{
+  "id": "claude-code-router-1587-sse-usage-dropped",
+  "title": "Chat to Anthropic SSE translation drops token usage",
+  "source": {
+    "repo": "musistudio/claude-code-router",
+    "issue": 1587,
+    "url": "https://github.com/musistudio/claude-code-router/issues/1587",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "claude-code-router"
+  },
+  "category": "usage_lost",
+  "direction": "stream",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_chat"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "m",
+      "max_tokens": 16,
+      "stream": true,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Say hi in one word."
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "\"output_tokens\":3"
+    }
+  ],
+  "observed": "Client sees output_tokens 0 and no input_tokens, so cost and context accounting in the client are wrong.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"Hi\"},\"finish_reason\":null}]}",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[],\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":3,\"total_tokens\":15}}",
+      "[DONE]"
+    ]
+  }
+}

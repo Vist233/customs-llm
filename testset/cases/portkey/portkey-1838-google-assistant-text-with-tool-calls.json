@@ -1,0 +1,63 @@
+{
+  "id": "portkey-1838-google-assistant-text-with-tool-calls",
+  "title": "Assistant text next to tool_calls is lost on the Google provider",
+  "source": {
+    "repo": "Portkey-AI/gateway",
+    "issue": 1838,
+    "url": "https://github.com/Portkey-AI/gateway/issues/1838",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "portkey",
+    "route": "google"
+  },
+  "category": "message_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "gemini_generate"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "gemini-2.5-flash",
+      "max_tokens": 10,
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        },
+        {
+          "role": "assistant",
+          "content": "Thinking...",
+          "tool_calls": [
+            {
+              "id": "call_1",
+              "type": "function",
+              "function": {
+                "name": "foo",
+                "arguments": "{}"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "Thinking..."
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "foo"
+    }
+  ],
+  "observed": "Gemini receives the functionCall part only; the assistant's text part is gone."
+}

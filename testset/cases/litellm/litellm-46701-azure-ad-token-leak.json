@@ -1,0 +1,60 @@
+{
+  "id": "litellm-46701-azure-ad-token-leak",
+  "title": "Internal azure_ad_token, client_id and tenant_id leak into the Anthropic request body",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 46701,
+    "url": "https://github.com/BerriAI/litellm/issues/46701",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "azure_ai anthropic"
+  },
+  "category": "field_injected",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "anthropic_messages"
+  },
+  "severity": "critical",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "claude-mythos-5-1",
+      "max_tokens": 32,
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "absent",
+      "out": "$.azure_ad_token"
+    },
+    {
+      "op": "absent",
+      "out": "$.azure_ad_token_provider"
+    },
+    {
+      "op": "absent",
+      "out": "$.client_id"
+    },
+    {
+      "op": "absent",
+      "out": "$.tenant_id"
+    }
+  ],
+  "observed": "Upstream returns 400 'azure_ad_token: Extra inputs are not permitted'; credentials configured for the gateway are also sent to the downstream API in the body.",
+  "preconditions": [
+    "deployment whose litellm_params set azure_ad_token, client_id and tenant_id"
+  ]
+}

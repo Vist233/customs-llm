@@ -1,0 +1,53 @@
+{
+  "id": "portkey-1838-google-mid-conversation-system",
+  "title": "Google provider drops system messages that are not first",
+  "source": {
+    "repo": "Portkey-AI/gateway",
+    "issue": 1838,
+    "url": "https://github.com/Portkey-AI/gateway/issues/1838",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "portkey",
+    "route": "google"
+  },
+  "category": "message_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "gemini_generate"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "gemini-2.5-flash",
+      "max_tokens": 10,
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        },
+        {
+          "role": "system",
+          "content": "This is a mid-turn system message"
+        },
+        {
+          "role": "user",
+          "content": "hello"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "This is a mid-turn system message"
+    }
+  ],
+  "observed": "Upstream body has neither systemInstruction nor any trace of the system text; the two user messages are merged into one turn."
+}

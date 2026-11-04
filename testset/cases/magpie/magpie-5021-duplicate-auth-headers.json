@@ -1,0 +1,60 @@
+{
+  "id": "magpie-5021-duplicate-auth-headers",
+  "title": "Both Authorization and X-Api-Key are sent to an Anthropic endpoint",
+  "source": {
+    "repo": "yetone/magpie",
+    "issue": 5021,
+    "url": "https://github.com/yetone/magpie/issues/5021",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "magpie",
+    "route": "custom provider anthropic base"
+  },
+  "category": "header_conflict",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "anthropic_messages"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "Qwen-Flash",
+      "max_tokens": 16,
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "headers": {
+      "x-api-key": "KEY"
+    }
+  },
+  "assertions": [
+    {
+      "op": "any_of",
+      "why": "some upstreams return 403 when both are present; send exactly one",
+      "items": [
+        {
+          "op": "absent",
+          "target": "upstream_headers",
+          "out": "$.authorization"
+        },
+        {
+          "op": "absent",
+          "target": "upstream_headers",
+          "out": "$.x-api-key"
+        }
+      ]
+    }
+  ],
+  "observed": "Qwen-Flash behind an internal Anthropic gateway returns 403 invalid api-key when both headers are present; Deepseek-Flash tolerates both."
+}

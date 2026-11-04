@@ -1,0 +1,49 @@
+{
+  "id": "litellm-43582-router-settings-override-leak",
+  "title": "Internal router_settings_override leaks into the provider request body",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 43582,
+    "url": "https://github.com/BerriAI/litellm/issues/43582",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "anthropic/"
+  },
+  "category": "field_injected",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "anthropic_messages"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "claude-haiku-4-5",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "absent",
+      "out": "$.router_settings_override",
+      "why": "internal control field, Anthropic rejects it with 400 Extra inputs are not permitted"
+    }
+  ],
+  "observed": "A key or team with router_settings plus a callback that sets api_key sends router_settings_override upstream; every request from that key returns 400.",
+  "preconditions": [
+    "virtual key or team with router_settings",
+    "callback that sets data[\"api_key\"] in async_pre_call_hook"
+  ]
+}

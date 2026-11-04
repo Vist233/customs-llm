@@ -1,0 +1,93 @@
+{
+  "id": "new-api-7920-merged-assistant-tool-calls",
+  "title": "Chat to Claude drops tool_calls when adjacent assistant messages are merged",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 7920,
+    "url": "https://github.com/QuantumNous/new-api/issues/7920",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "new-api",
+    "route": "claude"
+  },
+  "category": "message_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "anthropic_messages"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "m",
+      "max_tokens": 64,
+      "messages": [
+        {
+          "role": "user",
+          "content": "do two things"
+        },
+        {
+          "role": "assistant",
+          "content": null,
+          "tool_calls": [
+            {
+              "id": "call_A",
+              "type": "function",
+              "function": {
+                "name": "one",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": null,
+          "tool_calls": [
+            {
+              "id": "call_B",
+              "type": "function",
+              "function": {
+                "name": "two",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_A",
+          "content": "ok-A"
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call_B",
+          "content": "ok-B"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "all_of",
+      "items": [
+        {
+          "op": "contains_anywhere",
+          "text": "call_A"
+        },
+        {
+          "op": "contains_anywhere",
+          "text": "call_B"
+        }
+      ]
+    }
+  ],
+  "observed": "After merging consecutive assistant messages, tool_calls of the merged messages are lost, orphaning the tool results.",
+  "notes": "Payload reconstructed from the issue's described cases; the issue's exact request was not machine-readable."
+}

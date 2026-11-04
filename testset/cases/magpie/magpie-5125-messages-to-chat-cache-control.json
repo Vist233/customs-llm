@@ -1,0 +1,54 @@
+{
+  "id": "magpie-5125-messages-to-chat-cache-control",
+  "title": "cache_control is dropped on /v1/messages to a custom OpenAI-compatible provider",
+  "source": {
+    "repo": "yetone/magpie",
+    "issue": 5125,
+    "url": "https://github.com/yetone/magpie/issues/5125",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "magpie",
+    "route": "custom openai chat relay"
+  },
+  "category": "cache_control_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "venus/claude-sonnet-5-5",
+      "max_tokens": 16,
+      "system": [
+        {
+          "type": "text",
+          "text": "LONG-PREFIX LONG-PREFIX LONG-PREFIX LONG-PREFIX ",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ],
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "cache_control"
+    }
+  ],
+  "observed": "Upstream reports cache_creation 0 and cache_read 0 on /v1/messages while the same content on /v1/chat/completions caches fine."
+}

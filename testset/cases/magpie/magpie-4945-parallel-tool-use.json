@@ -1,0 +1,87 @@
+{
+  "id": "magpie-4945-parallel-tool-use",
+  "title": "Parallel tool_use blocks are rejected on the DeepSeek chat path",
+  "source": {
+    "repo": "yetone/magpie",
+    "issue": 4945,
+    "url": "https://github.com/yetone/magpie/issues/4945",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "magpie",
+    "route": "deepseek chat"
+  },
+  "category": "message_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "deepseek/deepseek-flash",
+      "max_tokens": 64,
+      "messages": [
+        {
+          "role": "user",
+          "content": "run both"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call_00_a",
+              "name": "Bash",
+              "input": {}
+            },
+            {
+              "type": "tool_use",
+              "id": "call_01_b",
+              "name": "Bash",
+              "input": {}
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call_00_a",
+              "content": "A"
+            },
+            {
+              "type": "tool_result",
+              "tool_use_id": "call_01_b",
+              "content": "B"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "all_of",
+      "items": [
+        {
+          "op": "contains_anywhere",
+          "text": "\"tool_call_id\":\"call_00_a\""
+        },
+        {
+          "op": "contains_anywhere",
+          "text": "\"tool_call_id\":\"call_01_b\""
+        }
+      ]
+    }
+  ],
+  "observed": "DeepSeek returns 400 'tool_use ids were found without tool_result blocks immediately after'; sequential calls work, direct calls with parallel blocks work.",
+  "notes": "The exact bad shape upstream saw is not in the issue text; this asserts the minimum (both results present as tool messages)."
+}

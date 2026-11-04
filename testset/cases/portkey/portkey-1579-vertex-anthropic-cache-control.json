@@ -1,0 +1,54 @@
+{
+  "id": "portkey-1579-vertex-anthropic-cache-control",
+  "title": "cache_control blocks are stripped on the Vertex AI Anthropic route",
+  "source": {
+    "repo": "Portkey-AI/gateway",
+    "issue": 1579,
+    "url": "https://github.com/Portkey-AI/gateway/issues/1579",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "portkey",
+    "route": "vertex-ai anthropic"
+  },
+  "category": "cache_control_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "anthropic_messages"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "@my-vertex-provider/anthropic.claude-sonnet-4-6",
+      "max_tokens": 50,
+      "system": [
+        {
+          "type": "text",
+          "text": "LARGE-SYSTEM-TEXT LARGE-SYSTEM-TEXT LARGE-SYSTEM-TEXT LARGE-SYSTEM-TEXT ",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ],
+      "messages": [
+        {
+          "role": "user",
+          "content": "hello"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "present",
+      "out": "$.system[*].cache_control"
+    }
+  ],
+  "observed": "Response usage shows cache_creation and cache_read tokens both 0; prompt caching never engages through the gateway."
+}

@@ -1,0 +1,49 @@
+{
+  "id": "litellm-41913-developer-role-rewritten",
+  "title": "role: developer is rewritten to system even for targets that accept developer",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 41913,
+    "url": "https://github.com/BerriAI/litellm/issues/41913",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "openai-compatible"
+  },
+  "category": "field_mutated",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "low",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "oai",
+      "messages": [
+        {
+          "role": "developer",
+          "content": "Be terse."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "equals",
+      "out": "$.messages[0].role",
+      "value": "developer"
+    }
+  ],
+  "observed": "The upstream accepts developer directly (200 when sent by hand), so the rewrite changes prompt semantics for no reason."
+}

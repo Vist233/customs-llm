@@ -1,0 +1,60 @@
+{
+  "id": "litellm-45235-refusal-only-chunks-dropped",
+  "title": "Streaming chunks whose delta carries only refusal are dropped",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 45235,
+    "url": "https://github.com/BerriAI/litellm/issues/45235",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "stream_chunk_lost",
+  "direction": "stream",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "m",
+      "stream": true,
+      "messages": [
+        {
+          "role": "user",
+          "content": "do something unsafe"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "that."
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "t help"
+    }
+  ],
+  "observed": "Refusal text never reaches the client; the stream ends with an empty message and finish_reason stop.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{\"refusal\":\"I can'\"},\"finish_reason\":null}]}",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{\"refusal\":\"t help\"},\"finish_reason\":null}]}",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{\"refusal\":\" with \"},\"finish_reason\":null}]}",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{\"refusal\":\"that.\"},\"finish_reason\":null}]}",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}",
+      "[DONE]"
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "id": "litellm-39735-named-tool-choice-dropped",
+  "title": "Named tool_choice object is dropped for Mistral",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 39735,
+    "url": "https://github.com/BerriAI/litellm/issues/39735",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "mistral, codestral, vertex_ai mistral"
+  },
+  "category": "tool_choice_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "critical",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "mistral-large",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Say hello and nothing else."
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "description": "Get weather",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
+            }
+          }
+        }
+      ],
+      "tool_choice": {
+        "type": "function",
+        "function": {
+          "name": "get_weather"
+        }
+      }
+    }
+  },
+  "assertions": [
+    {
+      "op": "preserved",
+      "in": "$.tool_choice",
+      "out": "$.tool_choice"
+    }
+  ],
+  "observed": "Request reaches Mistral with tools and no tool_choice; the model answers in plain text and an agent loop that pins the first tool stalls. No warning is logged."
+}

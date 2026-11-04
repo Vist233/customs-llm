@@ -1,0 +1,55 @@
+{
+  "id": "portkey-1832-bedrock-stream-exception-dropped",
+  "title": "Bedrock messages stream drops exception events and returns 200 with an empty body",
+  "source": {
+    "repo": "Portkey-AI/gateway",
+    "issue": 1832,
+    "url": "https://github.com/Portkey-AI/gateway/issues/1832",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "portkey",
+    "route": "bedrock"
+  },
+  "category": "error_masked",
+  "direction": "error",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "bedrock_converse"
+  },
+  "severity": "high",
+  "detectable": "partial",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "bedrock-claude",
+      "max_tokens": 16,
+      "stream": true,
+      "messages": [
+        {
+          "role": "user",
+          "content": "describe this"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "Could not process image",
+      "why": "the provider's error message must reach the client as an error event"
+    }
+  ],
+  "observed": "Exception-only stream yields HTTP 200 with 0 bytes; an exception after a delta just stops. The client cannot tell failure from completion.",
+  "upstream": {
+    "status": 200,
+    "framing": "aws_eventstream",
+    "sse": [
+      "{\"validationException\":{\"message\":\"The model returned the following errors: Could not process image\"}}"
+    ]
+  },
+  "notes": "The mock must emit AWS event-stream frames with an exception message; the sse list holds the logical event."
+}

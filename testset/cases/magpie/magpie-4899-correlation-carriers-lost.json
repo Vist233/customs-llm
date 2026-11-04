@@ -1,0 +1,67 @@
+{
+  "id": "magpie-4899-correlation-carriers-lost",
+  "title": "Protocol translation drops body metadata, X-Cid header and the cid query parameter",
+  "source": {
+    "repo": "yetone/magpie",
+    "issue": 4899,
+    "url": "https://github.com/yetone/magpie/issues/4899",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "magpie",
+    "route": "translation tier (url only)"
+  },
+  "category": "field_dropped",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_chat"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages?cid=abc123",
+    "body": {
+      "model": "stub-model",
+      "max_tokens": 16,
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ],
+      "metadata": {
+        "cid": "abc123"
+      }
+    },
+    "headers": {
+      "x-cid": "abc123"
+    }
+  },
+  "assertions": [
+    {
+      "op": "any_of",
+      "why": "callers need at least one carrier to correlate upstream traffic with the original request",
+      "items": [
+        {
+          "op": "contains_anywhere",
+          "text": "abc123"
+        },
+        {
+          "op": "contains_anywhere",
+          "target": "upstream_headers",
+          "text": "abc123"
+        },
+        {
+          "op": "contains_anywhere",
+          "target": "upstream_url",
+          "text": "abc123"
+        }
+      ]
+    }
+  ],
+  "observed": "Upstream sees a plain Chat request with none of the three carriers. The same provider configured as passthrough keeps all three."
+}

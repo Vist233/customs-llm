@@ -1,0 +1,53 @@
+{
+  "id": "new-api-7489-terminal-chunk-dropped",
+  "title": "Terminal stream chunk carrying finish_reason is dropped when usage is not requested",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 7489,
+    "url": "https://github.com/QuantumNous/new-api/issues/7489",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "new-api"
+  },
+  "category": "stream_chunk_lost",
+  "direction": "stream",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "m",
+      "stream": true,
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "\"finish_reason\":\"stop\""
+    }
+  ],
+  "observed": "Client never receives the chunk that ends the turn, so SDKs that wait for finish_reason hang or report an incomplete response.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"hi\"},\"finish_reason\":null}]}",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}",
+      "[DONE]"
+    ]
+  },
+  "notes": "Payload reconstructed from the issue title; the issue body has no raw stream capture."
+}

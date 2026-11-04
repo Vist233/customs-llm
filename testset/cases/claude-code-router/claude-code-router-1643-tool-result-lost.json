@@ -1,0 +1,78 @@
+{
+  "id": "claude-code-router-1643-tool-result-lost",
+  "title": "Anthropic tool_result is lost when routing to the Responses protocol",
+  "source": {
+    "repo": "musistudio/claude-code-router",
+    "issue": 1643,
+    "url": "https://github.com/musistudio/claude-code-router/issues/1643",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "claude-code-router",
+    "route": "openai_responses connector"
+  },
+  "category": "message_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_responses"
+  },
+  "severity": "critical",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "m",
+      "max_tokens": 64,
+      "messages": [
+        {
+          "role": "user",
+          "content": "load the skill"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call_00_x",
+              "name": "Skill",
+              "input": {
+                "skill": "docx"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call_00_x",
+              "content": "skill loaded"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "all_of",
+      "items": [
+        {
+          "op": "contains_anywhere",
+          "text": "function_call_output"
+        },
+        {
+          "op": "contains_anywhere",
+          "text": "\"call_id\":\"call_00_x\""
+        }
+      ]
+    }
+  ],
+  "observed": "Upstream rejects the next turn with 'No tool output found for tool call'; the result is not linked to the prior function call.",
+  "notes": "Single tool call, not a parallel-ordering problem."
+}

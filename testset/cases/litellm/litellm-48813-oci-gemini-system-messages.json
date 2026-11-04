@@ -1,0 +1,61 @@
+{
+  "id": "litellm-48813-oci-gemini-system-messages",
+  "title": "OCI Gemini keeps only the last of several system messages",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 48813,
+    "url": "https://github.com/BerriAI/litellm/issues/48813",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "oci/google.gemini-*"
+  },
+  "category": "message_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "other"
+  },
+  "severity": "high",
+  "detectable": "no",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "oci/google.gemini",
+      "messages": [
+        {
+          "role": "system",
+          "content": "AGENT-PROMPT-ONE"
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        },
+        {
+          "role": "system",
+          "content": "SUMMARY-TWO"
+        },
+        {
+          "role": "user",
+          "content": "go"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "AGENT-PROMPT-ONE"
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "SUMMARY-TWO"
+    }
+  ],
+  "observed": "LiteLLM forwards every system message; the drop happens inside OCI's GENERIC-to-Gemini mapping, so the gateway boundary looks clean.",
+  "notes": "Kept as a negative example: the loss is not visible in bytes leaving the gateway, so a boundary checker passes this case. It must be marked as a known blind spot, not a bug the tool catches."
+}

@@ -1,0 +1,78 @@
+{
+  "id": "new-api-7252-ollama-final-frame-tool-calls",
+  "title": "Ollama tool_calls delivered in the final done:true frame are dropped when streaming",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 7252,
+    "url": "https://github.com/QuantumNous/new-api/issues/7252",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "new-api",
+    "route": "ollama channel"
+  },
+  "category": "stream_chunk_lost",
+  "direction": "stream",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "other"
+  },
+  "severity": "critical",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "qwen3-coder-30b-a3b-instruct:q4km",
+      "stream": true,
+      "max_tokens": 120,
+      "temperature": 0,
+      "messages": [
+        {
+          "role": "user",
+          "content": "北京今天天气怎么样？"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "description": "Get weather",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "get_weather"
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "北京"
+    }
+  ],
+  "observed": "Client gets three frames with no tool_calls (empty assistant delta, stop, usage); Ollama's single native frame carried the call.",
+  "upstream": {
+    "status": 200,
+    "framing": "ndjson",
+    "sse": [
+      "{\"model\":\"qwen3-coder-30b-a3b-instruct:q4km\",\"message\":{\"role\":\"assistant\",\"content\":\"\",\"tool_calls\":[{\"function\":{\"name\":\"get_weather\",\"arguments\":{\"city\":\"北京\"}}}]},\"done\":true,\"done_reason\":\"stop\"}"
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "id": "litellm-48721-failure-finish-reason-reported-as-stop",
+  "title": "Upstream finish reasons meaning failure or truncation are reported as stop",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 48721,
+    "url": "https://github.com/BerriAI/litellm/issues/48721",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "finish_reason_wrong",
+  "direction": "response",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "m",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "absent_anywhere",
+      "text": "\"finish_reason\":\"stop\"",
+      "why": "a failed generation must not look like a clean stop"
+    }
+  ],
+  "observed": "abort, network_error and MALFORMED_FUNCTION_CALL all come back as stop in both streaming and non-streaming; callers treat partial output as complete.",
+  "upstream": {
+    "status": 200,
+    "body": {
+      "id": "c1",
+      "object": "chat.completion",
+      "created": 1,
+      "model": "m",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "partial"
+          },
+          "finish_reason": "abort"
+        }
+      ]
+    }
+  }
+}
