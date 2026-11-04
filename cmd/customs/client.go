@@ -170,6 +170,15 @@ func cmdTarget(args []string) error {
 	return nil
 }
 
+// openaiBase is the base URL an OpenAI client should use. SDKs append /chat/completions to it, so when the
+// upstream URL already ends in /v1 the relay must not add a second one.
+func openaiBase(base, upstream string) string {
+	if strings.HasSuffix(strings.TrimRight(upstream, "/"), "/v1") {
+		return base
+	}
+	return base + "/v1"
+}
+
 func cmdRun(args []string) error {
 	fs := flag.NewFlagSet("run", flag.ExitOnError)
 	data := fs.String("data", defaultDataDir(), "data directory")
@@ -183,8 +192,9 @@ func cmdRun(args []string) error {
 		return err
 	}
 	base := "http://" + d.Relay + "/" + *target
+	openai := openaiBase(base, loadTargets(*data)[*target])
 	cmd := exec.Command(fs.Arg(0), fs.Args()[1:]...)
-	cmd.Env = append(os.Environ(), "OPENAI_BASE_URL="+base+"/v1", "OPENAI_API_BASE="+base+"/v1", "ANTHROPIC_BASE_URL="+base, "CUSTOMS_RELAY="+base)
+	cmd.Env = append(os.Environ(), "OPENAI_BASE_URL="+openai, "OPENAI_API_BASE="+openai, "ANTHROPIC_BASE_URL="+base, "CUSTOMS_RELAY="+base)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)

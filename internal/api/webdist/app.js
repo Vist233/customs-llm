@@ -60,18 +60,18 @@ async function refreshList() {
   if (listFilter.state) p.set("state", listFilter.state);
   if (listFilter.q) p.set("q", listFilter.q);
   const list = await getJSON("/api/traces?" + p);
-  document.getElementById("count").textContent = list.length + T(" 条");
+  document.getElementById("count").textContent = (list.length >= 200 ? T("最新 ") : "") + list.length + T(" 条");
   if (!list.length) {
     el.innerHTML = `<div class="empty">${T("还没有记录。")}<br>${T("让客户端经过中转:")}<code class="mono">${T("customs run --target NAME -- 你的命令")}</code>${T(",或到「来源」页查看怎么接入。")}</div>`;
     return;
   }
-  el.innerHTML = `<table><thead><tr><th>${T("时间")}</th><th>${T("状态")}</th><th>${T("请求")}</th><th>${T("目标")}</th><th>${T("模型")}</th><th class="right">${T("耗时 / 首字节")}</th>
+  el.innerHTML = `<div class="scrollx"><table><thead><tr><th>${T("时间")}</th><th>${T("状态")}</th><th>${T("请求")}</th><th>${T("目标")}</th><th>${T("模型")}</th><th class="right">${T("耗时 / 首字节")}</th>
     <th class="right">in / out / cache</th><th>finish</th><th>${T("标记")}</th></tr></thead><tbody>${list.map((t) => `
     <tr class="link" data-id="${esc(t.id)}"><td class="mono">${tm(t.started)}</td><td>${badge(t.state)}${t.status ? ` <span class="muted mono">${t.status}</span>` : ""}</td>
     <td class="mono">${esc(t.method)} ${esc(t.path)}${t.streaming ? T(' <span class="muted">流</span>') : ""}</td><td>${esc(t.target)}</td>
     <td class="mono">${esc(t.model)}</td><td class="right mono">${t.state === "running" ? "…" : ms(t.ms)} / ${t.ttfb_ms ? ms(t.ttfb_ms) : "-"}</td>
     <td class="right mono">${tok(t.usage.in)} / ${tok(t.usage.out)} / ${tok(t.usage.cache_read)}</td><td class="mono">${esc(t.finish || "-")}</td>
-    <td>${(t.flags || []).map((f) => `<span class="badge b-warn">${esc(f)}</span>`).join(" ")}</td></tr>`).join("")}</tbody></table>`;
+    <td>${(t.flags || []).map((f) => `<span class="badge b-warn">${esc(tFlag(f))}</span>`).join(" ")}</td></tr>`).join("")}</tbody></table></div>`;
   el.querySelectorAll("tr.link").forEach((tr) => (tr.onclick = () => (location.hash = "#/trace/" + tr.dataset.id)));
 }
 
@@ -322,9 +322,9 @@ async function viewSources() {
   shell("sources", `<div class="card"><h3>${T("中转")}</h3><div class="kv"><div>${T("监听")}</div><div class="mono">${esc(info.relay_listen)}</div><div>${T("数据目录")}</div><div class="mono">${esc(info.data_dir)}</div>
     <div>${T("版本")}</div><div class="mono">${esc(info.version)}</div></div>
     <div class="bar" style="margin:12px 0 0"><button id="stopd">${T("停止程序")}</button></div></div>
-    <div class="card"><h3>${T("目标")}</h3>${(s.targets || []).length ? `<table><thead><tr><th>${T("名字")}</th><th>${T("上游")}</th><th>${T("让客户端用")}</th></tr></thead><tbody>${s.targets.map((t) => `
-      <tr><td>${esc(t.name)}</td><td class="mono">${esc(t.upstream)}</td><td><code class="copy mono" data-c="OPENAI_BASE_URL=${esc(base)}/${esc(t.name)}/v1">OPENAI_BASE_URL=${esc(base)}/${esc(t.name)}/v1</code><br>
-      <code class="copy mono" data-c="ANTHROPIC_BASE_URL=${esc(base)}/${esc(t.name)}">ANTHROPIC_BASE_URL=${esc(base)}/${esc(t.name)}</code></td></tr>`).join("")}</tbody></table>` : T('<div class="muted">还没有目标。</div>')}
+    <div class="card"><h3>${T("目标")}</h3>${(s.targets || []).length ? `<table><thead><tr><th>${T("名字")}</th><th>${T("上游")}</th><th>${T("让客户端用")}</th></tr></thead><tbody>${s.targets.map((t) => { const oa = /\/v1\/?$/.test(t.upstream) ? "" : "/v1"; return `
+      <tr><td>${esc(t.name)}</td><td class="mono">${esc(t.upstream)}</td><td><code class="copy mono" data-c="OPENAI_BASE_URL=${esc(base)}/${esc(t.name)}${oa}">OPENAI_BASE_URL=${esc(base)}/${esc(t.name)}${oa}</code><br>
+      <code class="copy mono" data-c="ANTHROPIC_BASE_URL=${esc(base)}/${esc(t.name)}">ANTHROPIC_BASE_URL=${esc(base)}/${esc(t.name)}</code></td></tr>`; }).join("")}</tbody></table>` : T('<div class="muted">还没有目标。</div>')}
     <div class="bar" style="margin-top:12px"><input id="tn" placeholder="${T("名字,如 litellm")}" size="14"><input id="tu" placeholder="${T("上游,如 http://127.0.0.1:4000")}" size="34"><button id="ta">${T("添加目标")}</button><span id="tmsg" class="muted"></span></div>
     <div class="hint">${T("或在终端:")}<code class="copy mono" data-c="${T("customs run --target NAME -- 你的命令")}">${T("customs run --target NAME -- 你的命令")}</code>${T(",只对这一个子进程设置环境变量,退出即恢复,不改任何配置文件。")}</div></div>
     <div class="card"><h3>${T("数据来源")}</h3><table><thead><tr><th>${T("来源")}</th><th>${T("证据")}</th><th>${T("状态")}</th><th>${T("说明")}</th></tr></thead><tbody>${(info.sources || []).map((x) => `<tr><td>${esc(x.name)}</td><td>${tierBadge(x.tier)}</td>

@@ -8,7 +8,7 @@ const I18N_EN = {
   "成功": "OK", "HTTP 错误": "HTTP error", "连接失败": "Connection failed", "流未结束": "Stream incomplete", "进行中": "Running", "进行中…": "Running…",
   "亲眼所见": "seen on wire", "网关自述": "self-reported", "推断": "inferred", "证据来源": "Evidence source", "证据": "Evidence",
   // list
-  "全部": "All", "失败": "Failed", "搜索模型 / 路径 / 客户端 / 目标": "Search model, path, client or target", " 条": " rows",
+  "全部": "All", "失败": "Failed", "搜索模型 / 路径 / 客户端 / 目标": "Search model, path, client or target", " 条": " rows", "最新 ": "Latest ",
   "还没有记录。": "Nothing recorded yet.", "让客户端经过中转:": "Send a client through the relay:", "customs run --target NAME -- 你的命令": "customs run --target NAME -- your-command",
   ",或到「来源」页查看怎么接入。": ", or see the Sources page.", "时间": "Time", "状态": "Status", "目标": "Target", "模型": "Model",
   "耗时 / 首字节": "Total / first byte", "标记": "Flags", " <span class=\"muted\">流</span>": " <span class=\"muted\">stream</span>",
@@ -86,6 +86,11 @@ function tDetail(s) {
     .replace(/^未配置;用 --litellm-url 和 --litellm-key 开启$/, "Off; enable with --litellm-url and --litellm-key")
     .replace(/^未开启$/, "Off")
     .replace(/^没有找到 /, "Not found: ");
+}
+// Flags are stored in Chinese by the relay.
+function tFlag(s) {
+  if (LANG === "zh") return s;
+  return s.replace(/^相同请求第 (\d+) 次$/, "Same request, attempt $1");
 }
 function bannerClosed() { try { return localStorage.getItem("customs.bannerClosed") === "1"; } catch { return false; } }
 function closeBanner() { try { localStorage.setItem("customs.bannerClosed", "1"); } catch {} }
