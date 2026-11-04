@@ -214,3 +214,15 @@ func TestRelayFlagsRepeats(t *testing.T) {
 		t.Fatalf("%+v", list)
 	}
 }
+
+func TestSetTargetRejectsNonHTTP(t *testing.T) {
+	r := New(nil)
+	for _, u := range []string{"ftp://h", "not a url", "localhost:4000", ""} {
+		if err := r.SetTarget("x", u); err == nil {
+			t.Errorf("SetTarget(%q) should fail", u)
+		}
+	}
+	if err := r.SetTarget("x", "https://example.com/v1"); err != nil {
+		t.Errorf("https URL rejected: %v", err)
+	}
+}

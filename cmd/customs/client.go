@@ -142,6 +142,9 @@ func cmdTarget(args []string) error {
 	}
 	sub := args[0]
 	_ = fs.Parse(args[1:])
+	if sub == "add" && fs.NArg() != 2 {
+		return &exitError{2, "usage: customs target add NAME URL"}
+	}
 	c, err := newClient(*data)
 	if err != nil {
 		return err
@@ -187,12 +190,27 @@ func cmdRun(args []string) error {
 	if *target == "" || fs.NArg() == 0 {
 		return &exitError{2, "usage: customs run --target NAME -- command [args...]"}
 	}
-	d, err := readDaemon(*data)
+	c, err := newClient(*data)
 	if err != nil {
 		return err
 	}
-	base := "http://" + d.Relay + "/" + *target
-	openai := openaiBase(base, loadTargets(*data)[*target])
+	var targets []map[string]string
+	if err := c.get("/api/targets", &targets); err != nil {
+		return err
+	}
+	upstream, names := "", []string{}
+	found := false
+	for _, t := range targets {
+		names = append(names, t["name"])
+		if t["name"] == *target {
+			upstream, found = t["upstream"], true
+		}
+	}
+	if !found {
+		return &exitError{2, fmt.Sprintf("没有名为 %q 的目标。已有: %s。先添加: customs target add %s URL", *target, strings.Join(names, ", "), *target)}
+	}
+	base := "http://" + c.d.Relay + "/" + *target
+	openai := openaiBase(base, upstream)
 	cmd := exec.Command(fs.Arg(0), fs.Args()[1:]...)
 	cmd.Env = append(os.Environ(), "OPENAI_BASE_URL="+openai, "OPENAI_API_BASE="+openai, "ANTHROPIC_BASE_URL="+base, "CUSTOMS_RELAY="+base)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr

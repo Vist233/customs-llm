@@ -79,8 +79,8 @@ func New(st *store.Store) *Relay {
 // SetTarget adds or replaces a target.
 func (r *Relay) SetTarget(name, upstream string) error {
 	u, err := url.Parse(upstream)
-	if err != nil || u.Scheme == "" || u.Host == "" {
-		return errors.New("upstream must be an absolute URL: " + upstream)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return errors.New("upstream must be an absolute http or https URL: " + upstream)
 	}
 	r.mu.Lock()
 	r.targets[name] = u

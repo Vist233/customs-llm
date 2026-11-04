@@ -4,6 +4,8 @@
 
 [English](README.md) · [实测结果](docs/findings.md) · [设计文档](docs/design.md) · [测试集](testset/README.md)
 
+> **想让 AI Agent 帮你排查?** 装好 customs-llm 后对 Agent 说:*"运行 `customs guide` 并照着做,找出我的 LLM 请求为什么失败。"*([详情](#怎么交给-ai-agent))
+
 ## 解决什么问题?
 
 网关本应转发请求,却可能悄悄丢掉或改写内容,而症状表现为模型行为异常,不是报错。客户端也可能隐藏真正的原因。以下都是 2026-11-04 在 Docker 中实测的:

@@ -4,6 +4,8 @@
 
 [中文说明](README.zh-CN.md) · [Measured results](docs/findings.md) · [Design](docs/design.md) · [Test set](testset/README.md)
 
+> **Using an AI agent?** Install customs-llm, then tell the agent: *"Run `customs guide` and follow it to find out why my LLM request failed."* ([details](#how-does-an-ai-agent-use-it))
+
 ## What problem does it solve?
 
 An LLM gateway is supposed to forward your request, but it can silently drop or rewrite parts of it, and the failure shows up as odd model behaviour rather than an error. Clients can also hide the real cause. Both are measurable:
