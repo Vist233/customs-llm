@@ -4,7 +4,7 @@
 
 [English](README.md) · [实测结果](docs/findings.md) · [设计文档](docs/design.md) · [测试集](testset/README.md)
 
-> **想让 AI Agent 帮你排查?** 装好 customs-llm 后对 Agent 说:*"运行 `customs guide` 并照着做,找出我的 LLM 请求为什么失败。"*([详情](#怎么交给-ai-agent))
+> **想让 AI Agent 帮你排查?** 把这句话发给它:*"用 customs-llm(https://github.com/Vist233/customs-llm)找出我的 LLM 请求为什么失败。如果还没有安装 `customs`,先从最新 release 下载,然后运行 `customs guide` 并照着做。"*([详情](#怎么交给-ai-agent))
 
 ## 解决什么问题?
 

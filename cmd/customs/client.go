@@ -207,7 +207,11 @@ func cmdRun(args []string) error {
 		}
 	}
 	if !found {
-		return &exitError{2, fmt.Sprintf("没有名为 %q 的目标。已有: %s。先添加: customs target add %s URL", *target, strings.Join(names, ", "), *target)}
+		have := "目前还没有任何目标"
+		if len(names) > 0 {
+			have = "已有: " + strings.Join(names, ", ")
+		}
+		return &exitError{2, fmt.Sprintf("没有名为 %q 的目标。%s。先添加: customs target add %s URL", *target, have, *target)}
 	}
 	base := "http://" + c.d.Relay + "/" + *target
 	openai := openaiBase(base, upstream)
