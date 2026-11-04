@@ -109,3 +109,7 @@ go test ./...
 ```
 
 CI runs on Linux, macOS and Windows. Pushing a `v*` tag builds every package and creates a draft release. Add a test case without writing Go: see [testset/README.md](testset/README.md).
+
+## License
+
+MIT, see [LICENSE](LICENSE). Bundled dependencies: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
