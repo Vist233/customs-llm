@@ -1,0 +1,18 @@
+# LiteLLM with a database (needed for pass-through endpoints, runtime model management and spend logs).
+# Isolated in its own compose project; `docker compose down -v` removes everything.
+name: customs-litellm
+services:
+  db:
+    image: postgres:16-alpine
+    environment: {POSTGRES_USER: litellm, POSTGRES_PASSWORD: litellm, POSTGRES_DB: litellm}
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U litellm"], interval: 3s, timeout: 3s, retries: 20}
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    depends_on: {db: {condition: service_healthy}}
+    ports: ["127.0.0.1:4000:4000"]
+    environment:
+      DATABASE_URL: postgresql://litellm:litellm@db:5432/litellm
+      STORE_MODEL_IN_DB: "True"
+      LITELLM_MASTER_KEY: sk-customs
+    volumes: ["./config.yaml:/app/config.yaml:ro"]
+    command: ["--config", "/app/config.yaml", "--port", "4000"]

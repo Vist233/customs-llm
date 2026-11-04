@@ -1,0 +1,88 @@
+{
+  "id": "magpie-4921-relayed-annotation-not-replayable",
+  "title": "A relayed Responses annotation without start_index poisons the thread on replay",
+  "source": {
+    "repo": "yetone/magpie",
+    "issue": 4921,
+    "url": "https://github.com/yetone/magpie/issues/4921",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "magpie"
+  },
+  "category": "format_shape_changed",
+  "direction": "response",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_responses"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "group/medium",
+      "input": "search and answer"
+    }
+  },
+  "assertions": [
+    {
+      "op": "any_of",
+      "why": "whatever the gateway hands to the client must be valid to send back as input",
+      "items": [
+        {
+          "op": "contains_anywhere",
+          "text": "start_index"
+        },
+        {
+          "op": "absent_anywhere",
+          "text": "url_citation"
+        }
+      ]
+    }
+  ],
+  "observed": "A non-OpenAI Responses upstream returned url_citation without start_index/end_index; it was relayed verbatim, stored in the thread, and every later turn returned 400 'Missing required parameter ... start_index'.",
+  "upstream": {
+    "status": 200,
+    "body": {
+      "id": "resp_1",
+      "object": "response",
+      "created_at": 0,
+      "status": "completed",
+      "model": "m",
+      "output": [
+        {
+          "type": "message",
+          "id": "msg_1",
+          "role": "assistant",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "text": "hello",
+              "annotations": [
+                {
+                  "type": "url_citation",
+                  "title": "T",
+                  "url": "https://u.example",
+                  "site_name": "S",
+                  "publish_time": "2026-10-01",
+                  "summary": "x"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "usage": {
+        "input_tokens": 1,
+        "output_tokens": 1,
+        "total_tokens": 2
+      }
+    }
+  },
+  "notes": "Corner case: the output is valid to read but invalid to replay. The failure shows up one turn later."
+}

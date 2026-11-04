@@ -1,0 +1,50 @@
+{
+  "id": "magpie-4482-codex-events-leak-to-responses-clients",
+  "title": "Codex-only events outside the Responses enum are handed to other clients",
+  "source": {
+    "repo": "yetone/magpie",
+    "issue": 4482,
+    "url": "https://github.com/yetone/magpie/issues/4482",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "magpie"
+  },
+  "category": "field_injected",
+  "direction": "stream",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_responses"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "codex/gpt-6.1-terra",
+      "stream": true,
+      "input": "say OK"
+    }
+  },
+  "assertions": [
+    {
+      "op": "absent_anywhere",
+      "text": "codex.",
+      "why": "events outside the Responses enum break strict clients"
+    }
+  ],
+  "observed": "event: codex.rate_limits and codex.response.metadata arrive before response.created; intermittent, so it reads as a flaky upstream.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"type\":\"codex.rate_limits\",\"plan_type\":\"plus\"}",
+      "{\"type\":\"codex.response.metadata\",\"model\":\"gpt-6.1-terra\"}",
+      "{\"type\":\"response.created\",\"sequence_number\":0,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"in_progress\",\"model\":\"m\",\"output\":[]}}",
+      "{\"type\":\"response.completed\",\"sequence_number\":1,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"completed\",\"model\":\"m\",\"output\":[],\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}"
+    ]
+  },
+  "notes": "Corner case: intermittent. The case needs repeating several times to be meaningful."
+}

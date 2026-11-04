@@ -1,0 +1,70 @@
+{
+  "id": "litellm-44081-responses-bridge-truncation-reported-complete",
+  "title": "Truncated output is reported as completed on the Responses bridge",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 44081,
+    "url": "https://github.com/BerriAI/litellm/issues/44081",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "finish_reason_wrong",
+  "direction": "response",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "m",
+      "input": "write a long essay",
+      "max_output_tokens": 16
+    }
+  },
+  "assertions": [
+    {
+      "op": "equals",
+      "out": "$.status",
+      "value": "incomplete"
+    },
+    {
+      "op": "equals",
+      "out": "$.incomplete_details.reason",
+      "value": "max_output_tokens"
+    }
+  ],
+  "observed": "finish_reason length becomes status completed with incomplete_details null; a cut-off answer looks final.",
+  "upstream": {
+    "status": 200,
+    "body": {
+      "id": "c",
+      "object": "chat.completion",
+      "created": 1,
+      "model": "m",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "partial text"
+          },
+          "finish_reason": "length"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 5,
+        "completion_tokens": 16,
+        "total_tokens": 21
+      }
+    }
+  },
+  "notes": "The issue lists more defects in the same bridge (null finish_reason, temperature always 0). Add separate cases for those."
+}

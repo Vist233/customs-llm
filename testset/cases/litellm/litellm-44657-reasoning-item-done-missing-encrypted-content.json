@@ -1,0 +1,59 @@
+{
+  "id": "litellm-44657-reasoning-item-done-missing-encrypted-content",
+  "title": "output_item.done for a reasoning item omits encrypted_content",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 44657,
+    "url": "https://github.com/BerriAI/litellm/issues/44657",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "reasoning_lost",
+  "direction": "stream",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_responses"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "claude-opus-5-5",
+      "stream": true,
+      "reasoning": {
+        "effort": "high"
+      },
+      "include": [
+        "reasoning.encrypted_content"
+      ],
+      "input": [
+        {
+          "role": "user",
+          "content": "think, then answer"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "present",
+      "out": "$.events[*].item.encrypted_content",
+      "why": "clients replay output_item.done items; without it reasoning silently turns off on later turns"
+    }
+  ],
+  "observed": "Replaying items from output_item.done gives reasoning tokens 77-105, then 0, then 0; replaying response.completed keeps reasoning every turn.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"type\":\"response.created\",\"sequence_number\":0,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"in_progress\",\"model\":\"m\",\"output\":[]}}",
+      "{\"type\":\"response.output_item.done\",\"sequence_number\":1,\"output_index\":0,\"item\":{\"id\":\"rs_1\",\"type\":\"reasoning\",\"summary\":[],\"encrypted_content\":\"ENC-BLOB-1\"}}",
+      "{\"type\":\"response.completed\",\"sequence_number\":2,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"completed\",\"model\":\"m\",\"output\":[{\"id\":\"rs_1\",\"type\":\"reasoning\",\"summary\":[],\"encrypted_content\":\"ENC-BLOB-1\"}],\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}"
+    ]
+  }
+}

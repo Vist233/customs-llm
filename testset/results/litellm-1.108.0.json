@@ -1,0 +1,321 @@
+{
+ "gateway": "litellm",
+ "version": "1.108.0",
+ "image": "ghcr.io/berriai/litellm:main-stable@sha256:c560d317136880ea92d62334d4367ab10955b1af189dd3ea24f6551290b1d6c1",
+ "run_date": "2026-11-04",
+ "setup": "gateways/litellm (docker compose with Postgres)",
+ "meaning": {
+  "PASS": "assertions hold: the gateway kept what the case requires",
+  "FAIL": "an assertion is violated: the reported behaviour is present",
+  "INCONCLUSIVE": "the run could not test the case on this setup",
+  "SKIP": "the case cannot run with this setup"
+ },
+ "results": [
+  {
+   "id": "claude-code-router-1587-sse-usage-dropped",
+   "outcome": "PASS",
+   "detail": "client_response contains \"\\\"output_tokens\\\":3\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "claude-code-router-1643-tool-result-lost",
+   "outcome": "PASS",
+   "detail": "all matched",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "claude-code-router-1678-image-dropped",
+   "outcome": "PASS",
+   "detail": "upstream_request contains \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-24051-schema-mutated-across-fallback",
+   "outcome": "SKIP",
+   "detail": "needs precondition: router with fallback gemini -> openai; first upstream (gemini) returns a retryable error; assertion applies to the final upstream request",
+   "upstream_path": ""
+  },
+  {
+   "id": "litellm-39735-named-tool-choice-dropped",
+   "outcome": "FAIL",
+   "detail": "$.tool_choice = {\"function\":{\"name\":\"get_weather\"},\"type\":\"function\"} was not found at $.tool_choice",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-41913-const-rewritten-to-object",
+   "outcome": "FAIL",
+   "detail": "upstream_request does not contain \"USD\"",
+   "upstream_path": "/v1beta/models/customs-gemini:generateContent"
+  },
+  {
+   "id": "litellm-41913-developer-role-rewritten",
+   "outcome": "FAIL",
+   "detail": "$.messages[0].role = \"system\", want \"developer\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-41913-parallel-tool-calls-false-dropped",
+   "outcome": "PASS",
+   "detail": "any_of: upstream_request contains \"allowed_function_names\"",
+   "upstream_path": "/v1beta/models/customs-gemini:generateContent"
+  },
+  {
+   "id": "litellm-41913-strict-dropped-anthropic",
+   "outcome": "FAIL",
+   "detail": "upstream_request does not contain \"\\\"strict\\\":true\"",
+   "upstream_path": "/v1/messages"
+  },
+  {
+   "id": "litellm-43157-union-tool-schema-emptied",
+   "outcome": "PASS",
+   "detail": "upstream_request contains \"\\\"kind\\\"\"",
+   "upstream_path": "/v1/messages"
+  },
+  {
+   "id": "litellm-43324-message-level-cache-control",
+   "outcome": "FAIL",
+   "detail": "upstream_request does not contain \"cache_control\"",
+   "upstream_path": "/v1/messages"
+  },
+  {
+   "id": "litellm-43582-router-settings-override-leak",
+   "outcome": "SKIP",
+   "detail": "needs precondition: virtual key or team with router_settings; callback that sets data[\"api_key\"] in async_pre_call_hook",
+   "upstream_path": ""
+  },
+  {
+   "id": "litellm-43737-anthropic-document-block",
+   "outcome": "FAIL",
+   "detail": "upstream_request does not contain \"This is the document content the model should see.\"",
+   "upstream_path": "/model/anthropic.customs-bedrock/converse"
+  },
+  {
+   "id": "litellm-43817-responses-url-citation-dropped-in-stream",
+   "outcome": "PASS",
+   "detail": "client_response contains \"url_citation\"; client_response contains \"https://a.example\"",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "litellm-44081-responses-bridge-truncation-reported-complete",
+   "outcome": "PASS",
+   "detail": "$.status equals expected value; $.incomplete_details.reason equals expected value",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-44657-reasoning-item-done-missing-encrypted-content",
+   "outcome": "PASS",
+   "detail": "$.events[*].item.encrypted_content matched 1 value(s)",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "litellm-44979-tool-result-is-error",
+   "outcome": "FAIL",
+   "detail": "upstream_request contains \"deploy failed: exit 1\"; none matched: upstream_request does not contain \"[tool error]\"; upstream_request does not contain \"\\\"error\\\":\"; upstream_request does not contain \"is_error\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-45122-responses-stream-error-code-lost",
+   "outcome": "PASS",
+   "detail": "client_response contains \"invalid_prompt\"",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "litellm-45235-refusal-only-chunks-dropped",
+   "outcome": "FAIL",
+   "detail": "client_response does not contain \"that.\"; client_response does not contain \"t help\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-45348-parallel-tool-call-arguments-dropped-in-stream",
+   "outcome": "FAIL",
+   "detail": "client_response does not contain \"Paris\"",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "litellm-45378-mistral-content-chunks-truncated",
+   "outcome": "FAIL",
+   "detail": "client_response does not contain \"The sky is blue during the day\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-45586-missing-usage-reported-as-zero",
+   "outcome": "FAIL",
+   "detail": "client_response contains \"\\\"total_tokens\\\":0\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-45618-string-content-to-blocks",
+   "outcome": "INCONCLUSIVE",
+   "detail": "passes on a generic provider, but the case is specific to \"databricks\", which this setup does not route to: $.messages[0].content has type string",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-46146-responses-moderation-param-dropped",
+   "outcome": "FAIL",
+   "detail": "$.moderation = {\"model\":\"omni-moderation-latest\"} was not found at $.moderation",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "litellm-46701-azure-ad-token-leak",
+   "outcome": "SKIP",
+   "detail": "needs precondition: deployment whose litellm_params set azure_ad_token, client_id and tenant_id",
+   "upstream_path": ""
+  },
+  {
+   "id": "litellm-47169-messages-bridge-reorders-tool-calls",
+   "outcome": "FAIL",
+   "detail": "\"ARG-A-MARKER\" not found in order after offset 464",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "litellm-48721-failure-finish-reason-reported-as-stop",
+   "outcome": "FAIL",
+   "detail": "client_response contains \"\\\"finish_reason\\\":\\\"stop\\\"\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "litellm-48813-oci-gemini-system-messages",
+   "outcome": "SKIP",
+   "detail": "no fake model for openai_chat -> other",
+   "upstream_path": ""
+  },
+  {
+   "id": "litellm-49479-jsonrpc-id-stripped",
+   "outcome": "FAIL",
+   "detail": "$.id = 1 was not found at $.id; $.canary preserved at $.canary",
+   "upstream_path": "/mcp"
+  },
+  {
+   "id": "litellm-49574-minimax-reasoning-effort",
+   "outcome": "INCONCLUSIVE",
+   "detail": "passes on a generic provider, but the case is specific to \"minimax\", which this setup does not route to: $.reasoning_effort preserved at $.reasoning_effort",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "magpie-4482-codex-events-leak-to-responses-clients",
+   "outcome": "FAIL",
+   "detail": "client_response contains \"codex.\"",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "magpie-4899-correlation-carriers-lost",
+   "outcome": "FAIL",
+   "detail": "none matched: upstream_request does not contain \"abc123\"; upstream_headers does not contain \"abc123\"; upstream_url does not contain \"abc123\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "magpie-4921-relayed-annotation-not-replayable",
+   "outcome": "FAIL",
+   "detail": "none matched: client_response does not contain \"start_index\"; client_response contains \"url_citation\"",
+   "upstream_path": "/v1/responses"
+  },
+  {
+   "id": "magpie-4945-parallel-tool-use",
+   "outcome": "INCONCLUSIVE",
+   "detail": "passes on a generic provider, but the case is specific to \"deepseek\", which this setup does not route to: all matched",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "magpie-5021-duplicate-auth-headers",
+   "outcome": "PASS",
+   "detail": "any_of: $.authorization matched 0 value(s)",
+   "upstream_path": "/v1/messages"
+  },
+  {
+   "id": "magpie-5125-messages-to-chat-cache-control",
+   "outcome": "FAIL",
+   "detail": "upstream_request does not contain \"cache_control\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "new-api-6616-responses-function-call-inside-message",
+   "outcome": "FAIL",
+   "detail": "upstream_request does not contain \"\\\"tool_calls\\\"\"; upstream_request contains \"\\\"tool_call_id\\\":\\\"call_1\\\"\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "new-api-6981-sse-comment-heartbeat-dropped",
+   "outcome": "FAIL",
+   "detail": "client_response does not contain \": keepalive\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "new-api-7192-non-function-tools-passthrough",
+   "outcome": "PASS",
+   "detail": "upstream_request has no \"\\\"type\\\":\\\"web_search\\\"\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "new-api-7252-ollama-final-frame-tool-calls",
+   "outcome": "PASS",
+   "detail": "client_response contains \"get_weather\"; client_response contains \"\\\"tool_calls\\\"\"",
+   "upstream_path": "/api/chat"
+  },
+  {
+   "id": "new-api-7455-tool-schema-keywords-stripped",
+   "outcome": "SKIP",
+   "detail": "no fake model for openai_chat -> other",
+   "upstream_path": ""
+  },
+  {
+   "id": "new-api-7489-terminal-chunk-dropped",
+   "outcome": "PASS",
+   "detail": "client_response contains \"\\\"finish_reason\\\":\\\"stop\\\"\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "new-api-7578-responses-image-as-text",
+   "outcome": "PASS",
+   "detail": "$.messages[0].content[*].image_url has type object; upstream_request contains \"data:image/png;base64,\"",
+   "upstream_path": "/v1/chat/completions"
+  },
+  {
+   "id": "new-api-7704-boolean-enum-in-tool-schema",
+   "outcome": "PASS",
+   "detail": "upstream_request has no \"\\\"enum\\\":[true,false]\"",
+   "upstream_path": "/v1beta/models/customs-gemini:generateContent"
+  },
+  {
+   "id": "new-api-7920-merged-assistant-tool-calls",
+   "outcome": "PASS",
+   "detail": "all matched",
+   "upstream_path": "/v1/messages"
+  },
+  {
+   "id": "new-api-8048-injected-placeholder-text",
+   "outcome": "PASS",
+   "detail": "upstream_request has no \"\\\"text\\\":\\\"...\\\"\"",
+   "upstream_path": "/v1/messages"
+  },
+  {
+   "id": "portkey-1423-temperature-zero-dropped",
+   "outcome": "PASS",
+   "detail": "$.generationConfig.temperature equals expected value",
+   "upstream_path": "/v1beta/models/customs-gemini:generateContent"
+  },
+  {
+   "id": "portkey-1579-vertex-anthropic-cache-control",
+   "outcome": "INCONCLUSIVE",
+   "detail": "passes on a generic provider, but the case is specific to \"vertex\", which this setup does not route to: $.system[*].cache_control matched 1 value(s)",
+   "upstream_path": "/v1/messages"
+  },
+  {
+   "id": "portkey-1832-bedrock-stream-exception-dropped",
+   "outcome": "SKIP",
+   "detail": "fake upstream cannot speak aws_eventstream yet",
+   "upstream_path": ""
+  },
+  {
+   "id": "portkey-1838-google-assistant-text-with-tool-calls",
+   "outcome": "PASS",
+   "detail": "upstream_request contains \"Thinking...\"; upstream_request contains \"foo\"",
+   "upstream_path": "/v1beta/models/customs-gemini:generateContent"
+  },
+  {
+   "id": "portkey-1838-google-mid-conversation-system",
+   "outcome": "PASS",
+   "detail": "upstream_request contains \"This is a mid-turn system message\"",
+   "upstream_path": "/v1beta/models/customs-gemini:generateContent"
+  }
+ ]
+}

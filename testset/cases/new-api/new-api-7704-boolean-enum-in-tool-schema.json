@@ -1,0 +1,69 @@
+{
+  "id": "new-api-7704-boolean-enum-in-tool-schema",
+  "title": "A boolean enum in a tool schema causes a 400 on Gemini",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 7704,
+    "url": "https://github.com/QuantumNous/new-api/issues/7704",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "new-api",
+    "route": "gemini/vertex"
+  },
+  "category": "tool_schema_rewritten",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "gemini_generate"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "gemini-2.5-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "toggle"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "toggle",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "on": {
+                  "type": "boolean",
+                  "enum": [
+                    true,
+                    false
+                  ]
+                }
+              },
+              "required": [
+                "on"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "absent_anywhere",
+      "text": "\"enum\":[true,false]",
+      "why": "Gemini requires string enums; the converter must rewrite or drop it"
+    }
+  ],
+  "observed": "The enum is forwarded as booleans and Gemini rejects the request with HTTP 400.",
+  "notes": "Corner case: a type the target schema dialect does not accept."
+}

@@ -1,0 +1,159 @@
+{
+  "id": "litellm-47169-messages-bridge-reorders-tool-calls",
+  "title": "The /v1/messages Responses bridge puts assistant text between tool calls and their outputs",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 47169,
+    "url": "https://github.com/BerriAI/litellm/issues/47169",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "openai_responses upstream with strict pairing"
+  },
+  "category": "message_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_responses"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "thinking-model",
+      "max_tokens": 256,
+      "thinking": {
+        "type": "enabled",
+        "budget_tokens": 1024
+      },
+      "messages": [
+        {
+          "role": "user",
+          "content": "go"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "ASSISTANT-TEXT-MARKER"
+            },
+            {
+              "type": "tool_use",
+              "id": "call_a",
+              "name": "run",
+              "input": {
+                "x": "ARG-A-MARKER"
+              }
+            },
+            {
+              "type": "tool_use",
+              "id": "call_b",
+              "name": "run",
+              "input": {
+                "x": "ARG-B-MARKER"
+              }
+            },
+            {
+              "type": "tool_use",
+              "id": "call_c",
+              "name": "run",
+              "input": {
+                "x": "ARG-C-MARKER"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call_a",
+              "content": "OUT-A-MARKER"
+            },
+            {
+              "type": "tool_result",
+              "tool_use_id": "call_b",
+              "content": "OUT-B-MARKER"
+            },
+            {
+              "type": "tool_result",
+              "tool_use_id": "call_c",
+              "content": "OUT-C-MARKER"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "ordered_text",
+      "texts": [
+        "ASSISTANT-TEXT-MARKER",
+        "ARG-A-MARKER",
+        "ARG-C-MARKER",
+        "OUT-A-MARKER"
+      ],
+      "why": "text first, then the function_call items, then their outputs; nothing may sit between a call and its output"
+    }
+  ],
+  "observed": "Input arrives as [U, R, fc_a, fc_b, fc_c, message, fco_a, ...]; the backend orphans the batch and returns 400 'No tool output found for tool call'.",
+  "examples": {
+    "bad": {
+      "input": [
+        {
+          "type": "function_call",
+          "call_id": "call_a",
+          "arguments": "ARG-A-MARKER"
+        },
+        {
+          "type": "function_call",
+          "call_id": "call_c",
+          "arguments": "ARG-C-MARKER"
+        },
+        {
+          "type": "message",
+          "role": "assistant",
+          "content": "ASSISTANT-TEXT-MARKER"
+        },
+        {
+          "type": "function_call_output",
+          "call_id": "call_a",
+          "output": "OUT-A-MARKER"
+        }
+      ]
+    },
+    "good": {
+      "input": [
+        {
+          "type": "message",
+          "role": "assistant",
+          "content": "ASSISTANT-TEXT-MARKER"
+        },
+        {
+          "type": "function_call",
+          "call_id": "call_a",
+          "arguments": "ARG-A-MARKER"
+        },
+        {
+          "type": "function_call",
+          "call_id": "call_c",
+          "arguments": "ARG-C-MARKER"
+        },
+        {
+          "type": "function_call_output",
+          "call_id": "call_a",
+          "output": "OUT-A-MARKER"
+        }
+      ]
+    }
+  },
+  "notes": "Corner case: ordering. The markers make the order checkable without parsing the protocol."
+}

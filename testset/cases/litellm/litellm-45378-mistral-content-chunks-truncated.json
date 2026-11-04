@@ -1,0 +1,84 @@
+{
+  "id": "litellm-45378-mistral-content-chunks-truncated",
+  "title": "Mistral content returned as a list of chunks is cut to the last text chunk",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 45378,
+    "url": "https://github.com/BerriAI/litellm/issues/45378",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm",
+    "route": "mistral"
+  },
+  "category": "content_block_lost",
+  "direction": "response",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "mistral-medium-2604",
+      "messages": [
+        {
+          "role": "user",
+          "content": "why is the sky blue?"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "The sky is blue during the day"
+    }
+  ],
+  "observed": "The client gets just '.'; the first text chunk is lost, and reference chunks are dropped on the streaming path.",
+  "upstream": {
+    "status": 200,
+    "body": {
+      "id": "test",
+      "object": "chat.completion",
+      "created": 0,
+      "model": "mistral-medium-2604",
+      "choices": [
+        {
+          "index": 0,
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "The sky is blue during the day"
+              },
+              {
+                "type": "reference",
+                "reference_ids": [
+                  "doc1"
+                ]
+              },
+              {
+                "type": "text",
+                "text": "."
+              }
+            ]
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 10,
+        "completion_tokens": 12,
+        "total_tokens": 22
+      }
+    }
+  },
+  "notes": "Corner case: message content is an array of typed chunks, not a string."
+}

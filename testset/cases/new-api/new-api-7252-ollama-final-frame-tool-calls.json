@@ -15,12 +15,12 @@
   "direction": "stream",
   "protocol": {
     "in": "openai_chat",
-    "out": "other"
+    "out": "ollama_chat"
   },
   "severity": "critical",
   "detectable": "yes",
   "payload_origin": "issue",
-  "verified": false,
+  "verified": true,
   "inbound": {
     "method": "POST",
     "path": "/v1/chat/completions",
@@ -64,7 +64,7 @@
     },
     {
       "op": "contains_anywhere",
-      "text": "北京"
+      "text": "\"tool_calls\""
     }
   ],
   "observed": "Client gets three frames with no tool_calls (empty assistant delta, stop, usage); Ollama's single native frame carried the call.",
@@ -74,5 +74,6 @@
     "sse": [
       "{\"model\":\"qwen3-coder-30b-a3b-instruct:q4km\",\"message\":{\"role\":\"assistant\",\"content\":\"\",\"tool_calls\":[{\"function\":{\"name\":\"get_weather\",\"arguments\":{\"city\":\"北京\"}}}]},\"done\":true,\"done_reason\":\"stop\"}"
     ]
-  }
+  },
+  "notes": "Argument values are not asserted: gateways may escape non-ASCII inside the arguments string."
 }

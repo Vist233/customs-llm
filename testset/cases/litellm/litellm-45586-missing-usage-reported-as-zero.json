@@ -1,0 +1,64 @@
+{
+  "id": "litellm-45586-missing-usage-reported-as-zero",
+  "title": "A missing usage object is reported as 0 tokens",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 45586,
+    "url": "https://github.com/BerriAI/litellm/issues/45586",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "usage_lost",
+  "direction": "response",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "m",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "absent_anywhere",
+      "text": "\"total_tokens\":0",
+      "why": "unknown must not look like zero"
+    }
+  ],
+  "observed": "Cost and budget logic cannot tell a provider that omitted usage from one that really used no tokens.",
+  "upstream": {
+    "status": 200,
+    "body": {
+      "id": "c",
+      "object": "chat.completion",
+      "created": 1,
+      "model": "m",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "hello"
+          },
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  },
+  "notes": "Corner case: absent versus zero."
+}

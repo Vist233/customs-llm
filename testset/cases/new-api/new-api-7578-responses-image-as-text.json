@@ -1,0 +1,59 @@
+{
+  "id": "new-api-7578-responses-image-as-text",
+  "title": "Responses to Chat conversion sends input_image as a string instead of an image_url object",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 7578,
+    "url": "https://github.com/QuantumNous/new-api/issues/7578",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "new-api"
+  },
+  "category": "format_shape_changed",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "m",
+      "input": [
+        {
+          "type": "message",
+          "role": "user",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "what is this"
+            },
+            {
+              "type": "input_image",
+              "image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "type_is",
+      "out": "$.messages[0].content[*].image_url",
+      "value": "object",
+      "why": "chat/completions wants image_url as an object"
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "data:image/png;base64,"
+    }
+  ],
+  "observed": "Upstream returns 400 'cannot unmarshal string into Go value of type ImageContent'."
+}

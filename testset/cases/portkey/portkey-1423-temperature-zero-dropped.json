@@ -1,0 +1,48 @@
+{
+  "id": "portkey-1423-temperature-zero-dropped",
+  "title": "temperature: 0 is not passed to Gemini",
+  "source": {
+    "repo": "Portkey-AI/gateway",
+    "issue": 1423,
+    "url": "https://github.com/Portkey-AI/gateway/issues/1423",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "portkey",
+    "route": "google"
+  },
+  "category": "field_dropped",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "gemini_generate"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "gemini-2.5-flash",
+      "max_tokens": 10,
+      "temperature": 0,
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "equals",
+      "out": "$.generationConfig.temperature",
+      "value": 0
+    }
+  ],
+  "observed": "A falsy-zero check drops the field, so Gemini uses its default temperature instead of deterministic output.",
+  "notes": "Corner case: zero, false and empty string are valid values. Worth testing top_p 0, n 0 and false booleans the same way."
+}

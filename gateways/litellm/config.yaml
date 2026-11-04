@@ -1,0 +1,50 @@
+# LiteLLM config used by `customs probe` to reach the fake upstream (docker run, see run.sh).
+# The aliases are chosen so every client endpoint can be sent to every upstream protocol:
+#   customs-chat            openai/ provider, Chat upstream for Chat clients
+#   customs-chat-bridge     openai/ with use_chat_completions_api: Responses and Messages clients reach a Chat upstream
+#   customs-mistral         mistral/ provider, for cases that are specific to it
+#   customs-responses       openai/ provider: Responses upstream for Responses and Messages clients
+#   customs-responses-prefix  openai/responses/: Responses upstream for Chat clients
+#   customs-anthropic       anthropic/ provider: Messages upstream for every client
+model_list:
+  - model_name: customs-chat
+    litellm_params: {model: openai/customs-chat, api_base: "http://host.docker.internal:9100/v1", api_key: fake}
+    model_info: {supports_reasoning: true}
+  - model_name: customs-chat-bridge
+    litellm_params: {model: openai/customs-chat, api_base: "http://host.docker.internal:9100/v1", api_key: fake, use_chat_completions_api: true}
+    model_info: {supports_reasoning: true}
+  - model_name: customs-mistral
+    litellm_params: {model: mistral/customs-chat, api_base: "http://host.docker.internal:9100/v1", api_key: fake}
+    model_info: {supports_reasoning: true}
+  - model_name: customs-responses
+    litellm_params: {model: openai/customs-responses, api_base: "http://host.docker.internal:9100/v1", api_key: fake}
+    model_info: {supports_reasoning: true}
+  - model_name: customs-responses-prefix
+    litellm_params: {model: openai/responses/customs-responses, api_base: "http://host.docker.internal:9100/v1", api_key: fake}
+    model_info: {supports_reasoning: true}
+  - model_name: customs-anthropic
+    litellm_params: {model: anthropic/customs-anthropic, api_base: "http://host.docker.internal:9100", api_key: fake}
+    model_info: {supports_reasoning: true}
+  - model_name: customs-gemini
+    litellm_params: {model: gemini/customs-gemini, api_base: "http://host.docker.internal:9100/v1beta", api_key: fake}
+    model_info: {supports_reasoning: true}
+  - model_name: customs-bedrock
+    litellm_params:
+      model: bedrock/converse/anthropic.customs-bedrock
+      aws_bedrock_runtime_endpoint: "http://host.docker.internal:9100"
+      aws_access_key_id: fake
+      aws_secret_access_key: fake
+      aws_region_name: us-east-1
+    model_info: {supports_reasoning: true}
+  - model_name: customs-ollama
+    litellm_params: {model: ollama_chat/customs-ollama, api_base: "http://host.docker.internal:9100"}
+router_settings:
+  disable_cooldowns: true
+  num_retries: 0
+general_settings:
+  master_key: sk-customs
+  pass_through_endpoints:
+    - path: "/canon-skills"
+      target: "http://host.docker.internal:9100/mcp"
+      include_subpath: false
+      headers: {}

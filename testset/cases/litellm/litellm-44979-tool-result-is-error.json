@@ -20,7 +20,7 @@
   "severity": "high",
   "detectable": "yes",
   "payload_origin": "reconstructed",
-  "verified": false,
+  "verified": true,
   "inbound": {
     "method": "POST",
     "path": "/v1/messages",

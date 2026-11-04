@@ -1,0 +1,89 @@
+{
+  "id": "litellm-45348-parallel-tool-call-arguments-dropped-in-stream",
+  "title": "Arguments of parallel tool calls are dropped when streaming /v1/messages",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 45348,
+    "url": "https://github.com/BerriAI/litellm/issues/45348",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "stream_chunk_lost",
+  "direction": "stream",
+  "protocol": {
+    "in": "anthropic_messages",
+    "out": "openai_responses"
+  },
+  "severity": "critical",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/messages",
+    "body": {
+      "model": "gpt-5.6-sol",
+      "max_tokens": 512,
+      "stream": true,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Get the current weather for Paris, London, and Tokyo. Call get_weather for each city."
+        }
+      ],
+      "tools": [
+        {
+          "name": "get_weather",
+          "description": "Get the current weather for a city.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "city"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "all_of",
+      "items": [
+        {
+          "op": "contains_anywhere",
+          "text": "Paris"
+        },
+        {
+          "op": "contains_anywhere",
+          "text": "London"
+        },
+        {
+          "op": "contains_anywhere",
+          "text": "Tokyo"
+        }
+      ]
+    }
+  ],
+  "observed": "Non-streaming returns all arguments; streaming returns the tool calls with empty arguments because only the .done events carry them.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"type\":\"response.created\",\"sequence_number\":0,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"in_progress\",\"model\":\"m\",\"output\":[]}}",
+      "{\"type\":\"response.output_item.added\",\"sequence_number\":1,\"output_index\":0,\"item\":{\"type\":\"function_call\",\"id\":\"fc_1\",\"call_id\":\"call_1\",\"name\":\"get_weather\",\"arguments\":\"\"}}",
+      "{\"type\":\"response.output_item.added\",\"sequence_number\":2,\"output_index\":1,\"item\":{\"type\":\"function_call\",\"id\":\"fc_2\",\"call_id\":\"call_2\",\"name\":\"get_weather\",\"arguments\":\"\"}}",
+      "{\"type\":\"response.output_item.added\",\"sequence_number\":3,\"output_index\":2,\"item\":{\"type\":\"function_call\",\"id\":\"fc_3\",\"call_id\":\"call_3\",\"name\":\"get_weather\",\"arguments\":\"\"}}",
+      "{\"type\":\"response.function_call_arguments.done\",\"sequence_number\":4,\"output_index\":0,\"item_id\":\"fc_1\",\"arguments\":\"{\\\"city\\\":\\\"Paris\\\"}\"}",
+      "{\"type\":\"response.function_call_arguments.done\",\"sequence_number\":5,\"output_index\":1,\"item_id\":\"fc_2\",\"arguments\":\"{\\\"city\\\":\\\"London\\\"}\"}",
+      "{\"type\":\"response.function_call_arguments.done\",\"sequence_number\":6,\"output_index\":2,\"item_id\":\"fc_3\",\"arguments\":\"{\\\"city\\\":\\\"Tokyo\\\"}\"}",
+      "{\"type\":\"response.completed\",\"sequence_number\":7,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"completed\",\"model\":\"m\",\"output\":[],\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}"
+    ]
+  },
+  "notes": "Upstream events reconstructed from the issue's description ('no .done handling'). Corner case: arguments only on .done events."
+}

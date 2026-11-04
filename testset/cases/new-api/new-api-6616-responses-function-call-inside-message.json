@@ -1,0 +1,87 @@
+{
+  "id": "new-api-6616-responses-function-call-inside-message",
+  "title": "Responses to Chat conversion mishandles function_call parts nested in a message",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 6616,
+    "url": "https://github.com/QuantumNous/new-api/issues/6616",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "new-api"
+  },
+  "category": "message_lost",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_chat"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "deepseek-v4-flash",
+      "stream": false,
+      "input": [
+        {
+          "type": "message",
+          "role": "user",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "run command"
+            }
+          ]
+        },
+        {
+          "type": "message",
+          "role": "assistant",
+          "content": [
+            {
+              "type": "output_text",
+              "text": "ok"
+            },
+            {
+              "type": "function_call",
+              "call_id": "call_1",
+              "name": "shell_command",
+              "arguments": "{}"
+            }
+          ]
+        },
+        {
+          "type": "function_call_output",
+          "call_id": "call_1",
+          "output": "done"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "name": "shell_command",
+          "description": "runs a command",
+          "parameters": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "\"tool_calls\""
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "\"tool_call_id\":\"call_1\""
+    }
+  ],
+  "observed": "Upstream returns 400 'Only text and image_url are supported.'; the nested function_call part is sent as message content.",
+  "notes": "Corner case: a function_call nested in message content is unusual; most clients put it at the top level."
+}

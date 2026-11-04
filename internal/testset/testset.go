@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path/filepath"
+	"path"
 	"regexp"
 	"sort"
 )
@@ -67,7 +67,9 @@ type Assertion struct {
 	Out    string `json:"out,omitempty"`
 	Value  any    `json:"value,omitempty"`
 	// Text is matched against the compact JSON of the whole target message.
-	Text  string      `json:"text,omitempty"`
+	Text string `json:"text,omitempty"`
+	// Texts is for ordered_text: every entry must appear in the compact JSON, in this order.
+	Texts []string    `json:"texts,omitempty"`
 	Items []Assertion `json:"items,omitempty"`
 	Why   string      `json:"why,omitempty"`
 }
@@ -107,7 +109,7 @@ type Examples struct {
 var (
 	directions = set("request", "response", "stream", "error")
 	protocols  = set("openai_chat", "openai_responses", "anthropic_messages", "gemini_generate",
-		"bedrock_converse", "jsonrpc", "other")
+		"bedrock_converse", "ollama_chat", "jsonrpc", "other")
 	severities = set("critical", "high", "medium", "low")
 	detect     = set("yes", "partial", "no")
 	origins    = set("issue", "reconstructed")
@@ -120,7 +122,7 @@ var (
 		"error_masked", "finish_reason_wrong", "header_conflict", "state_mutation",
 	)
 	ops = set("present", "absent", "equals", "preserved", "type_is",
-		"contains_anywhere", "absent_anywhere", "any_of", "all_of")
+		"contains_anywhere", "absent_anywhere", "ordered_text", "any_of", "all_of")
 	jsonTypes = set("string", "array", "object", "number", "boolean", "null")
 	pathRe    = regexp.MustCompile(`^\$(\.[A-Za-z_][A-Za-z0-9_-]*|\[(\d+|\*)\])*$`)
 	idRe      = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
@@ -134,15 +136,20 @@ func set(v ...string) map[string]bool {
 	return m
 }
 
-// Load reads every *.json file in dir, rejecting unknown fields and invalid cases.
+// Load reads every *.json file under dir (recursively), rejecting unknown fields and invalid cases.
 func Load(dir string) ([]Case, error) {
+	return LoadFS(os.DirFS(dir), ".")
+}
+
+// LoadFS is Load over any file system, such as the test set embedded in the binary.
+func LoadFS(fsys fs.FS, root string) ([]Case, error) {
 	var files []string
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(fsys, root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() && filepath.Ext(path) == ".json" {
-			files = append(files, path)
+		if !d.IsDir() && path.Ext(p) == ".json" {
+			files = append(files, p)
 		}
 		return nil
 	})
@@ -153,7 +160,7 @@ func Load(dir string) ([]Case, error) {
 	var out []Case
 	seen := map[string]string{}
 	for _, f := range files {
-		raw, err := os.ReadFile(f)
+		raw, err := fs.ReadFile(fsys, f)
 		if err != nil {
 			return nil, err
 		}
@@ -166,10 +173,10 @@ func Load(dir string) ([]Case, error) {
 		if err := c.Validate(); err != nil {
 			return nil, fmt.Errorf("%s: %w", f, err)
 		}
-		if g := filepath.Base(filepath.Dir(f)); g != c.Gateway.Name {
+		if g := path.Base(path.Dir(f)); g != c.Gateway.Name {
 			return nil, fmt.Errorf("%s: must live in a directory named after its gateway (%s)", f, c.Gateway.Name)
 		}
-		if want := c.ID + ".json"; filepath.Base(f) != want {
+		if want := c.ID + ".json"; path.Base(f) != want {
 			return nil, fmt.Errorf("%s: file name must be %s", f, want)
 		}
 		if prev, ok := seen[c.ID]; ok {
@@ -275,6 +282,10 @@ func (a *Assertion) validate() error {
 	case "contains_anywhere", "absent_anywhere":
 		if a.Text == "" {
 			return fmt.Errorf("%s needs text", a.Op)
+		}
+	case "ordered_text":
+		if len(a.Texts) < 2 {
+			return fmt.Errorf("ordered_text needs at least two texts")
 		}
 	case "any_of", "all_of":
 		if len(a.Items) < 2 {

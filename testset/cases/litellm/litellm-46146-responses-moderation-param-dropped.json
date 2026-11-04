@@ -1,0 +1,42 @@
+{
+  "id": "litellm-46146-responses-moderation-param-dropped",
+  "title": "The top-level moderation parameter is dropped on /v1/responses",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 46146,
+    "url": "https://github.com/BerriAI/litellm/issues/46146",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "field_dropped",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_responses"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "gpt-5.4-nano",
+      "input": "What is the weather in Berlin tomorrow?",
+      "moderation": {
+        "model": "omni-moderation-latest"
+      }
+    }
+  },
+  "assertions": [
+    {
+      "op": "preserved",
+      "in": "$.moderation",
+      "out": "$.moderation"
+    }
+  ],
+  "observed": "Moderation never runs; an invalid moderation model also returns 200, proving the parameter never reaches OpenAI. Sent through extra_body it works."
+}

@@ -38,16 +38,20 @@ The directory name must equal `gateway.name`, and the file name must equal `id`.
 
 ## Assertions
 
-Paths are a JSONPath subset (`$.a.b[0].c`, `[*]` = any element). `contains_anywhere` and `absent_anywhere`
-match text in the compact JSON of the whole target message, which keeps cross-protocol cases format-agnostic.
-`any_of` is for cases where several encodings of the same information are acceptable.
+Paths are a JSONPath subset (`$.a.b[0].c`). `[*]` means "any element": `present` passes if at least one
+element has the path. `contains_anywhere` and `absent_anywhere` match text in the compact JSON of the whole
+target message, which keeps cross-protocol cases format-agnostic. `ordered_text` requires its `texts` to appear
+in that compact JSON in the given order; cases use unique markers (`ARG-A-MARKER`) so order is checkable without
+parsing the protocol. `any_of` is for cases where several encodings of the same information are acceptable.
 
 Targets: `upstream_request` (default for request cases; the final one if the gateway retries),
 `upstream_headers`, `upstream_url`, `client_response` (default for other directions; streams are
-`{"events":[...]}`).
+`{"events":[...],"comments":[...]}`: events are the `data:` payloads parsed as JSON, comments are SSE comment
+lines. In `upstream.sse`, an entry starting with `:` is a comment line.
 
 ## Status and caveats
 
+- **Corner cases are marked in `notes`** (zero values, nested parts, ordering, absent versus zero, replayability).
 - **No case has been run against a real gateway yet** (`verified: false` everywhere). Payloads and assertions
   come from issue text. Treat them as hypotheses until verified.
 - `payload_origin: reconstructed` means the issue gave no raw payload; the case uses a minimal one we wrote.

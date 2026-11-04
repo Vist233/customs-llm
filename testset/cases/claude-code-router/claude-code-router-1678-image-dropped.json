@@ -20,7 +20,7 @@
   "severity": "critical",
   "detectable": "yes",
   "payload_origin": "issue",
-  "verified": false,
+  "verified": true,
   "inbound": {
     "method": "POST",
     "path": "/v1/messages",

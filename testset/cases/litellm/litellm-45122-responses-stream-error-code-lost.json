@@ -1,0 +1,47 @@
+{
+  "id": "litellm-45122-responses-stream-error-code-lost",
+  "title": "A Responses in-stream error event loses its code",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 45122,
+    "url": "https://github.com/BerriAI/litellm/issues/45122",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "error_masked",
+  "direction": "error",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_responses"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "issue",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "gpt-4.1",
+      "input": "hi",
+      "stream": true
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "invalid_prompt",
+      "why": "the client must see the upstream error code, not a generic fallback"
+    }
+  ],
+  "observed": "The error event in OpenAI's top-level shape becomes a generic failure; its code is gone, so retry and fallback logic cannot tell a flagged prompt from an outage.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"type\":\"response.created\",\"sequence_number\":0,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"in_progress\",\"model\":\"gpt-4.1\",\"output\":[]}}",
+      "{\"type\":\"error\",\"sequence_number\":1,\"code\":\"invalid_prompt\",\"message\":\"Invalid prompt: your prompt was flagged.\",\"param\":null}"
+    ]
+  }
+}

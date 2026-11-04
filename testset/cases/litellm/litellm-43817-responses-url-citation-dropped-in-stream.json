@@ -1,0 +1,54 @@
+{
+  "id": "litellm-43817-responses-url-citation-dropped-in-stream",
+  "title": "url_citation annotations are dropped from a streamed Responses reply",
+  "source": {
+    "repo": "BerriAI/litellm",
+    "issue": 43817,
+    "url": "https://github.com/BerriAI/litellm/issues/43817",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "litellm"
+  },
+  "category": "stream_chunk_lost",
+  "direction": "stream",
+  "protocol": {
+    "in": "openai_responses",
+    "out": "openai_responses"
+  },
+  "severity": "high",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/responses",
+    "body": {
+      "model": "gpt-5-mini",
+      "input": "weather in Paris?",
+      "stream": true
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "url_citation"
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "https://a.example"
+    }
+  ],
+  "observed": "With stream=True the citation never reaches the client; the same request without streaming keeps it.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"type\":\"response.created\",\"sequence_number\":0,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"in_progress\",\"model\":\"m\",\"output\":[]}}",
+      "{\"type\":\"response.output_text.delta\",\"sequence_number\":1,\"output_index\":0,\"item_id\":\"msg_1\",\"content_index\":0,\"delta\":\"Sunny in Paris.\"}",
+      "{\"type\":\"response.output_text.annotation.added\",\"sequence_number\":2,\"output_index\":0,\"item_id\":\"msg_1\",\"content_index\":0,\"annotation_index\":0,\"annotation\":{\"type\":\"url_citation\",\"url\":\"https://a.example\",\"title\":\"A\",\"start_index\":0,\"end_index\":5}}",
+      "{\"type\":\"response.output_item.done\",\"sequence_number\":3,\"output_index\":0,\"item\":{\"type\":\"message\",\"id\":\"msg_1\",\"role\":\"assistant\",\"status\":\"completed\",\"content\":[{\"type\":\"output_text\",\"text\":\"Sunny in Paris.\",\"annotations\":[{\"type\":\"url_citation\",\"url\":\"https://a.example\",\"title\":\"A\",\"start_index\":0,\"end_index\":5}]}]}}",
+      "{\"type\":\"response.completed\",\"sequence_number\":4,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"completed\",\"model\":\"m\",\"output\":[{\"type\":\"message\",\"id\":\"msg_1\",\"role\":\"assistant\",\"status\":\"completed\",\"content\":[{\"type\":\"output_text\",\"text\":\"Sunny in Paris.\",\"annotations\":[{\"type\":\"url_citation\",\"url\":\"https://a.example\",\"title\":\"A\",\"start_index\":0,\"end_index\":5}]}]}],\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}"
+    ]
+  },
+  "notes": "The issue's mock stream is truncated in the text we read; events after annotation.added are reconstructed."
+}

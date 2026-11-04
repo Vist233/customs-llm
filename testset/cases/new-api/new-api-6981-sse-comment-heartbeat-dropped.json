@@ -1,0 +1,55 @@
+{
+  "id": "new-api-6981-sse-comment-heartbeat-dropped",
+  "title": "SSE comment heartbeats from the upstream are dropped mid-stream",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 6981,
+    "url": "https://github.com/QuantumNous/new-api/issues/6981",
+    "state": "open"
+  },
+  "gateway": {
+    "name": "new-api"
+  },
+  "category": "stream_chunk_lost",
+  "direction": "stream",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "openai_chat"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": true,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "m",
+      "stream": true,
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": ": keepalive",
+      "why": "heartbeats keep intermediaries from closing an idle stream"
+    }
+  ],
+  "observed": "The comment line is removed while the response stays 200 and logs a normal end; clients and proxies behind the gateway can time out on slow generations.",
+  "upstream": {
+    "status": 200,
+    "sse": [
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"hi\"},\"finish_reason\":null}]}",
+      ": keepalive",
+      "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}",
+      "[DONE]"
+    ]
+  },
+  "notes": "Corner case: entries in upstream.sse that start with ':' are SSE comment lines. The client response lists them under \"comments\"."
+}

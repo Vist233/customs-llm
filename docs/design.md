@@ -30,7 +30,7 @@ LLM 请求出问题时,你不知道是哪一环造成的。
 ## 3. 非目标(现阶段)
 
 - **脱敏:先不做。** 记录原样保存。因此:数据库文件权限 0600,所有端口只监听 `127.0.0.1`,界面顶部常驻提示"本地记录含密钥与对话原文"。以后要分享报告再做脱敏。
-- 请求重放与多目标对比、多种协议的测试模型:都在第 13 节的后期里程碑。
+- 请求重放与多目标对比、Gemini / Bedrock 等其他协议的解析和测试模型:都在第 13 节的后期里程碑。
 - 托管版、多用户、云端存储。
 
 ## 4. 架构
@@ -60,7 +60,7 @@ LLM 请求出问题时,你不知道是哪一环造成的。
 | 模块 | 职责 | 备注 |
 |---|---|---|
 | `relay` | 前置中转:按路径前缀转发到配置好的目标,逐块转发并立即刷新,同时记录 | 程序启动时一起启动,见第 7 节 |
-| `fakeup` | 假上游:接收网关发来的测试请求,记录字节,返回预设响应 | 第一版只实现 OpenAI 兼容协议 |
+| `fakeup` | 假上游:接收网关发来的测试请求,记录字节,返回预设响应 | 第一版实现三种协议的响应,含流式:OpenAI Chat、OpenAI Responses、Anthropic Messages |
 | `collect/<name>` | 采集器:读某个软件的日志或调它的 API,产生 `reported` 层 Hop | 每个软件一个,见第 6 节 |
 | `driver/<name>` | 驱动:对某个网关新增、删除测试条目 | 见第 9 节;与采集器分开,同一网关可以只有其中之一 |
 | `store` | SQLite(纯 Go 驱动,免 CGO)加内容寻址的 blob | 请求体按哈希去重,对话历史里大量重复 |
@@ -83,8 +83,16 @@ LLM 请求出问题时,你不知道是哪一环造成的。
 没有它,跨协议比较就退化成逐字段 JSON Diff,全是噪音。代价是:每个协议的解析器写错一处就会产生误报,
 所以解析器必须有自己的测试,用 `testset/` 的用例和各协议的官方样例做夹具。
 
-第一版只解析 **OpenAI Chat** 和 **Anthropic Messages**。其他协议在详情页回退为原始 JSON,并明确标注"该协议暂未解析",
-不猜测、不显示半截的对账表。
+**第一版支持三种协议:OpenAI Chat Completions、OpenAI Responses、Anthropic Messages。** 一次请求的入站和出站可以是其中任意两种的组合,
+对账表要能跨协议对齐。其他协议(Gemini、Bedrock 等)在详情页回退为原始 JSON,并明确标注"该协议暂未解析",不猜测、不显示半截的对账表。
+
+三者结构差异大,解析时要特别注意:
+
+- **OpenAI Chat**:`messages` 数组;工具调用挂在助手消息的 `tool_calls`;工具结果是 `role: tool` 的消息;流是 `data:` 行加 `[DONE]`。
+- **OpenAI Responses**:输入输出是"条目"(item)序列,而不是消息数组;函数调用与结果是独立的条目,推理也是条目;流事件有类型名。
+- **Anthropic Messages**:`system` 在顶层;内容是块数组;工具调用是 `tool_use` 块,结果是用户消息里的 `tool_result` 块;流有分类型的事件。
+
+以上是已知的大致形状,**逐字段的细节必须以官方文档和真实抓到的样本为准**(见第 14 节),不能凭记忆写解析器。
 
 ### 4.3 约束
 
@@ -443,7 +451,7 @@ upstream = "https://opencode.ai/zen/go"  # 托管服务:只能记录客户端到
 第一版的限制:
 
 - 没有"目标协议是否有对应字段"的能力表,所以只显示"少了",不判断是合理的有损还是 bug;判定交给数据集用例里的断言。
-- 只解析 OpenAI Chat 和 Anthropic Messages 的行,其他协议显示"暂未解析"。
+- 只解析 OpenAI Chat、OpenAI Responses、Anthropic Messages 的行,其他协议显示"暂未解析"。
 
 ## 9. 临时覆盖:用一个测试模型测出站字节
 
@@ -455,8 +463,11 @@ upstream = "https://opencode.ai/zen/go"  # 托管服务:只能记录客户端到
 2. 本程序向这个测试模型发数据集里的用例;假上游记录网关实际发出的字节,并返回预设响应。
 3. 测完删除测试条目。删除前把条目 ID 写入清单文件 `~/.customs-llm/overrides.json`,程序崩溃后下次启动先清理。
 
-第一版**只创建一种测试模型**:走 OpenAI 兼容路径。其他协议路径(Anthropic、Gemini、Responses、Bedrock)后续按需增加,
-每增加一种,假上游也要实现对应协议的响应格式。
+第一版**按协议各建一种测试模型**,共三种:走 OpenAI Chat 路径、OpenAI Responses 路径、Anthropic Messages 路径。
+一次探测可以只测其中一条路径,也可以三条都测;假上游对应实现这三种协议的响应格式(含流式)。其他协议(Gemini、Bedrock 等)后续按需增加。
+
+不同网关里这三条路径的配置方式不同,驱动要各自处理。例如 magpie 的自定义 provider 本来就分 `url=`(Chat)、`responses=`、`anthropic=` 三个入口,正好对应;
+LiteLLM 的 Responses 路径怎么配(模型前缀或 `mode`)需要核实。
 
 测到的是"该网关对这种协议路径的转换能力",**不是用户实际配置的体检**。带 key 级 `router_settings`、降级链、路由组才会触发的问题,
 测试条目走不到。报告里必须写明这一点;要看真实配置下的行为,用前置中转看真实流量。
@@ -553,9 +564,36 @@ customs guide                            打印给 Agent 的操作手册
 
 控制接口的令牌放在 `daemon.json`(权限 0600),命令行读取它;只监听回环地址。
 
+### 11.1 分发:用户不需要安装 Go
+
+- 发布物是**单个静态二进制**:`customs`(后端、前端、测试集全部嵌入)。使用 `go:embed` 嵌入前端和 `testset/cases`,SQLite 用纯 Go 驱动,不需要 CGO,不需要任何运行时。
+- 用户运行测试集不需要源码:`customs testset validate|list|stats` 使用嵌入的测试集;`--testset DIR` 可以改用本地目录里的用例,方便先试新增用例。
+- 测试集可以独立于程序更新(只下载数据,不下载代码),下载后校验哈希;这一点现阶段只是设计,不做。
+- 平台:macOS(arm64、amd64)、Windows(amd64)、Linux(amd64、arm64)。
+
+### 11.2 打包放在最后
+
+本地全部测完再打包,顺序:先在本机跑通(`go run ./cmd/customs`),再做各平台发布物。
+- **macOS**:`.dmg`,内含 `.app`。`.app` 是一个很薄的启动器:启动常驻进程并打开浏览器(之前决定不做完整桌面壳);另提供裸二进制给命令行与 Agent 使用。未签名的下载物会被 Gatekeeper 拦下,签名与公证是单独的工作。
+- **Windows**:`.exe`(同一个二进制),可能触发 SmartScreen 提示。
+- **Linux**:`tar.gz`。
+- 构建用 GitHub Actions 加 goreleaser,在对应平台的 runner 上跑,因为不依赖 CGO,也可以交叉编译。
+
+### 11.3 实现顺序(本地先行)
+
+1. `internal/model` + `internal/store`(M0)。
+2. `internal/relay` + `internal/api`(含 SSE)+ 最小前端(M1)。
+3. `cmd/customs`:`up`、`down`、`status`、`run`、`traces`、`testset`(第 10 节),让 Agent 和人看到同一份数据。
+4. `ir`、对账表、`checks`(M3)。
+5. 采集器与驱动(M2、M4)。
+
+每一步都要在本机用真实流量或 `httptest` 跑通后再进入下一步。
+
 ## 12. 检查项
 
-沿用 `testset/cases/`(独立成一个自包含的测试集,见 `testset/README.md`,新增用例不需要写 Go 代码)。查看器里每条检查项对应一条或多条用例,按证据层级给出结果:
+沿用 `testset/cases/`(独立成一个自包含的测试集,见 `testset/README.md`,新增用例不需要写 Go 代码)。
+
+**第一版的覆盖要求:** 三种协议各自作为入站和出站的组合都要有用例(`tsctl stats` 会按协议组合统计)。目前 Responses 相关的用例只有 2 条,是最大的缺口,需要优先补。查看器里每条检查项对应一条或多条用例,按证据层级给出结果:
 
 - `wire` 层能判定的,直接给结论。
 - 只有 `reported` 层的,标明"依据网关自述"。
@@ -570,8 +608,8 @@ customs guide                            打印给 Agent 的操作手册
 | M0 | 记录模型、SQLite 存储、关联键 | 能写入和查询 Hop 与 Trace |
 | M1 | 中转 + `api` + 最小前端(请求列表、详情页的耗时瀑布、流视图、错误视图);同时确定前端框架 | 不依赖任何网关日志就能用,覆盖 opencode Go 这类托管服务 |
 | M2 | 采集器:LiteLLM、opencode、magpie、new-api(按此顺序) | 补上 `reported` 层;每个采集器上线前先在真机核实 6 节里的"未核实"项 |
-| M3 | `ir`(OpenAI Chat、Anthropic Messages)+ 对账表 + 检查项 + 首页 | 展示 issue 提炼的关键信息 |
-| M4 | 假上游 + 临时覆盖驱动(magpie 先,LiteLLM 次之),一种测试模型 | 用户只给地址和凭据,拿到出站的精确字节 |
+| M3 | `ir`(OpenAI Chat、OpenAI Responses、Anthropic Messages)+ 对账表 + 检查项 + 首页 | 展示 issue 提炼的关键信息 |
+| M4 | 假上游(三种协议,含流式)+ 临时覆盖驱动(magpie 先,LiteLLM 次之),按协议各一种测试模型 | 用户只给地址和凭据,拿到出站的精确字节 |
 | M4.5 | 命令行(`probe`、`traces`、`report`、`guide`、`run`)与界面批准门槛 | Agent 可驱动整个流程,覆盖没有驱动的软件 |
 | M5 | 重放与多目标并排对比 | 直连 vs 经网关的归因证据 |
 
@@ -588,9 +626,10 @@ customs guide                            打印给 Agent 的操作手册
 7. 跨平台:Windows 下环境变量覆盖和路径差异。
 8. 临时覆盖:LiteLLM `/model/new` 的前提(`store_model_in_db`、管理员 key 类型);new-api 渠道增删接口;Portkey 自定义主机的请求头名;claude-code-router 的 provider 接口。
 9. `ir` 各协议解析器的夹具来源:官方样例、数据集用例;解析不全时的回退行为。
-10. 日志采集:各来源的真实样本夹具;opencode 日志是否含请求体;magpie `usage.jsonl` 的路径。
-11. 控制接口的令牌机制与 Windows 下的实现。
-12. 临时覆盖的清理:各网关删除条目后是否残留缓存或路由状态。
+10. 三种协议:OpenAI Responses 的条目结构与流事件类型、Anthropic Messages 的流事件、OpenAI Chat 的流块,逐一以官方文档和真实抓包为准;LiteLLM 等网关里 Responses 路径的配置方式。
+11. 日志采集:各来源的真实样本夹具;opencode 日志是否含请求体;magpie `usage.jsonl` 的路径。
+12. 控制接口的令牌机制与 Windows 下的实现。
+13. 临时覆盖的清理:各网关删除条目后是否残留缓存或路由状态。
 
 ## 15. 命名
 

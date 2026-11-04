@@ -1,0 +1,83 @@
+{
+  "id": "new-api-7455-tool-schema-keywords-stripped",
+  "title": "const, additionalProperties and oneOf are stripped from tool schemas",
+  "source": {
+    "repo": "QuantumNous/new-api",
+    "issue": 7455,
+    "url": "https://github.com/QuantumNous/new-api/issues/7455",
+    "state": "closed"
+  },
+  "gateway": {
+    "name": "new-api"
+  },
+  "category": "tool_schema_rewritten",
+  "direction": "request",
+  "protocol": {
+    "in": "openai_chat",
+    "out": "other"
+  },
+  "severity": "medium",
+  "detectable": "yes",
+  "payload_origin": "reconstructed",
+  "verified": false,
+  "inbound": {
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "body": {
+      "model": "m",
+      "messages": [
+        {
+          "role": "user",
+          "content": "pay"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "pay",
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "currency": {
+                  "const": "USD"
+                },
+                "amount": {
+                  "oneOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "currency",
+                "amount"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "op": "contains_anywhere",
+      "text": "\"const\""
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "additionalProperties"
+    },
+    {
+      "op": "contains_anywhere",
+      "text": "oneOf"
+    }
+  ],
+  "observed": "The cleaner removes all three keywords, so pinned values and alternatives are no longer constrained.",
+  "notes": "Weak by design: some targets legitimately lack these keywords. The case records the loss; judge it per target."
+}

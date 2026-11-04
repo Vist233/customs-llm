@@ -4,3 +4,7 @@ bin/
 *.db-shm
 .customs-llm/
 .DS_Store
+.cache/
+*.log
+/customs
+/tsctl
