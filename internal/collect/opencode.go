@@ -72,7 +72,7 @@ func (o *OpenCode) Poll(ctx context.Context) (int, error) {
 	if _, err := os.Stat(o.Path); err != nil {
 		return 0, fmt.Errorf("没有找到 %s", o.Path)
 	}
-	db, err := sql.Open("sqlite", "file:"+o.Path+"?mode=ro&_pragma=busy_timeout(2000)")
+	db, err := sql.Open("sqlite", store.URI(o.Path, "mode=ro&_pragma=busy_timeout(2000)"))
 	if err != nil {
 		return 0, err
 	}
@@ -128,7 +128,7 @@ func openCodeHop(id, session string, updated int64, m *ocMessage) *model.Hop {
 		end = updated
 	}
 	h := &model.Hop{TraceID: "oc-" + id, Source: "opencode", Tier: model.TierReported, From: "opencode", To: m.ProviderID,
-		Started: time.UnixMilli(m.Time.Created), Ended: time.UnixMilli(end), Model: m.ModelID, Finish: m.Finish, Method: "LOG", URI: "opencode 会话 " + session,
+		Started: time.UnixMilli(m.Time.Created), Ended: time.UnixMilli(end), Model: m.ModelID, Finish: m.Finish, Method: "LOG", URI: "opencode session " + session,
 		Usage: model.Usage{In: m.Tokens.Input, Out: m.Tokens.Output, CacheRead: m.Tokens.Cache.Read, CacheWrite: m.Tokens.Cache.Write, Reasoning: m.Tokens.Reasoning},
 		Note:  map[string]string{"session": session, "message": id}}
 	if e := m.Error; e != nil {

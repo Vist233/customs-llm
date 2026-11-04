@@ -644,3 +644,10 @@ GitHub 上暂无同名项目(检查于 2026-11)。
 ## 16. 实测状态
 
 实测结果见 [findings.md](findings.md)。第 14 节里已解决:LiteLLM 运行时加模型的前提、magpie 驱动、opencode 日志和数据库、`--detailed_debug` 之外的出站记录仍未核实。未解决:new-api、claude-code-router、Portkey 的驱动和日志;LiteLLM 用量日志的写入时机和请求内容;Claude Code、Codex 经 `customs run` 的实际运行;Windows。Bedrock 流式(AWS event-stream)假上游没有实现。
+
+## 17. 界面语言、托管页与发布
+
+- 界面默认英语,右上角切换中文,选择保存在浏览器。翻译表在 `internal/api/webdist/i18n.js`,测试保证每个界面字符串都有英文。命令行和操作手册目前仍是中文。
+- 顶部提示可以关闭,关闭状态保存在浏览器。
+- 「托管」页(英文 Agent)生成给 Agent 的提示词,带上当前实例的程序路径、PID、端口、数据目录和中转目标,让 Agent 定位正在运行的这一个实例。
+- CI:`.github/workflows/ci.yml` 在三个系统上测试,构建 dmg、exe 和 tar.gz 并做冒烟测试。推送 `v*` 标签后生成**草稿** release,人工试用后再发布。发布物没有签名和公证。

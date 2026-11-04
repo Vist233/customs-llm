@@ -1,13 +1,16 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/Vist233/customs-llm/internal/ir"
 	"github.com/Vist233/customs-llm/internal/relay"
 	"github.com/Vist233/customs-llm/internal/store"
 )
@@ -79,4 +82,52 @@ func TestPlanNeedsWebApproval(t *testing.T) {
 	if c, _ := do(t, "POST", ts.URL+"/api/plans/"+p.ID+"/consume", cli, ""); c != 409 {
 		t.Errorf("plan used twice: %d", c)
 	}
+}
+
+// Every interface string and reconcile row must have an English translation.
+func TestEnglishComplete(t *testing.T) {
+	app, err := webFS.ReadFile("webdist/app.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dict, err := webFS.ReadFile("webdist/i18n.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	has := func(s string) bool { return strings.Contains(string(dict), jsonNoEscape(s)+":") }
+	for _, m := range regexp.MustCompile(`\bT\(("(?:[^"\\\\]|\\\\.)*")\)`).FindAllStringSubmatch(string(app), -1) {
+		var key string
+		if err := json.Unmarshal([]byte(m[1]), &key); err != nil {
+			t.Errorf("%s: %v", m[1], err)
+			continue
+		}
+		if !has(key) {
+			t.Errorf("no English for %q", key)
+		}
+	}
+	for _, r := range ir.Rows {
+		if !has(r.Group) {
+			t.Errorf("no English for group %q", r.Group)
+		}
+		if !has(r.Label) && !isASCII(r.Label) {
+			t.Errorf("no English for row %q", r.Label)
+		}
+	}
+}
+
+func jsonNoEscape(s string) string {
+	var b bytes.Buffer
+	e := json.NewEncoder(&b)
+	e.SetEscapeHTML(false)
+	_ = e.Encode(s)
+	return strings.TrimSpace(b.String())
+}
+
+func isASCII(s string) bool {
+	for _, r := range s {
+		if r > 127 {
+			return false
+		}
+	}
+	return true
 }

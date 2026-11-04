@@ -1,0 +1,7 @@
+#!/bin/bash
+# Starts customs-llm in the background and opens its page; a second launch just opens the page.
+here="$(cd "$(dirname "$0")" && pwd)"
+data="${CUSTOMS_DATA:-$HOME/.customs-llm}"
+mkdir -p "$data"
+nohup "$here/../Resources/customs" up --open >>"$data/app.log" 2>&1 &
+disown

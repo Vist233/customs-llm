@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you refer to customs-llm or its measured results, please cite it like this."
+title: "customs-llm"
+abstract: "Local tool that records every hop of an LLM request and tests LLM gateways against cases from real GitHub issues."
+type: software
+authors:
+  - alias: "Vist233"
+repository-code: "https://github.com/Vist233/customs-llm"
+keywords: [llm, llm-gateway, litellm, opencode, openai-api, anthropic-api, observability, debugging, conformance-testing]
+version: "0.1.0"

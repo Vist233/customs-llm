@@ -208,26 +208,30 @@ func cmdDown(args []string) error {
 	fs := flag.NewFlagSet("down", flag.ExitOnError)
 	data := fs.String("data", defaultDataDir(), "data directory")
 	_ = fs.Parse(args)
-	d, err := readDaemon(*data)
+	c, err := newClient(*data)
 	if err != nil {
 		return err
 	}
-	p, err := os.FindProcess(d.PID)
-	if err != nil {
+	path := filepath.Join(*data, "daemon.json")
+	if err := c.do("POST", "/api/shutdown", nil, nil); err != nil {
+		var ee *exitError
+		if errors.As(err, &ee) && ee.code == 4 {
+			// Nothing is listening: the file was left behind by a process that died.
+			_ = os.Remove(path)
+			fmt.Println("常驻进程已不在运行")
+			return nil
+		}
 		return err
-	}
-	if err := p.Signal(syscall.SIGTERM); err != nil {
-		return fmt.Errorf("stopping pid %d: %w", d.PID, err)
 	}
 	// Wait, so a following `customs up` does not race with this process shutting down.
 	for i := 0; i < 50; i++ {
-		if p.Signal(syscall.Signal(0)) != nil {
+		if _, err := os.Stat(path); os.IsNotExist(err) {
 			fmt.Println("常驻进程已退出")
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	return fmt.Errorf("进程 %d 5 秒内没有退出", d.PID)
+	return fmt.Errorf("进程 %d 5 秒内没有退出", c.d.PID)
 }
 
 func cmdGuide(args []string) error {

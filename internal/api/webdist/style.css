@@ -7,7 +7,9 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 header.top{display:flex;align-items:center;gap:20px;padding:0 20px;height:48px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
 header.top b{font-size:15px}header.top nav{display:flex;gap:4px}
 header.top nav a{padding:6px 12px;border-radius:6px;color:var(--muted)}header.top nav a.on{background:var(--panel2);color:var(--text)}
-.banner{background:#3b2f0b;color:#f0d77a;padding:6px 20px;font-size:12px;border-bottom:1px solid var(--line)}
+.banner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#3b2f0b;color:#f0d77a;padding:6px 20px;font-size:12px;border-bottom:1px solid var(--line)}
+.banner .x{background:none;border:0;color:inherit;font-size:16px;line-height:1;padding:2px 6px;cursor:pointer}
+.lang{margin-left:auto;display:flex;gap:2px}.lang button{padding:3px 9px;font-size:12px}
 @media (prefers-color-scheme:light){.banner{background:#fff8c5;color:#6a5300}}
 main{padding:20px;max-width:1400px;margin:0 auto}
 .bar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
@@ -46,3 +48,4 @@ details summary{cursor:pointer;color:var(--muted)}
 svg text{fill:var(--muted);font:11px var(--mono)}
 .hint{color:var(--muted);font-size:12.5px;margin:6px 0}
 code.copy{cursor:pointer;background:var(--panel2);padding:2px 6px;border-radius:4px;border:1px solid var(--line)}
+textarea.prompt{width:100%;min-height:300px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font:12.5px/1.55 var(--mono);resize:vertical}

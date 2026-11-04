@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -57,7 +58,7 @@ func Open(dir string) (*Store, error) {
 	if err := os.MkdirAll(filepath.Join(dir, "blobs"), 0o700); err != nil {
 		return nil, err
 	}
-	db, err := sql.Open("sqlite", "file:"+filepath.Join(dir, "customs.db")+"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(NORMAL)")
+	db, err := sql.Open("sqlite", URI(filepath.Join(dir, "customs.db"), "_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(NORMAL)"))
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +70,19 @@ func Open(dir string) (*Store, error) {
 	}
 	_ = os.Chmod(filepath.Join(dir, "customs.db"), 0o600)
 	return s, nil
+}
+
+// URI builds a SQLite file URI that also works for Windows paths and paths with spaces.
+func URI(path, query string) string {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		abs = path
+	}
+	p := filepath.ToSlash(abs)
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	return (&url.URL{Scheme: "file", Path: p, RawQuery: query}).String()
 }
 
 func (s *Store) Close() error { return s.db.Close() }

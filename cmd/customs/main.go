@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 )
 
 const usage = `customs - see every hop of an LLM request
 
 usage:
-  customs up [--target NAME=URL ...]        start the recorder, relay and web UI
-  customs status | down
+  customs up [--open] [--target NAME=URL ...]  start the recorder, relay and web UI
+  customs status | down | version
   customs target add NAME URL
   customs run --target NAME -- command      run a command through the relay (env vars for that process only)
   customs traces list|show
@@ -27,6 +28,10 @@ Run "customs <command> -h" for the flags of a command.
 `
 
 func main() {
+	if len(os.Args) < 2 && runtime.GOOS == "windows" {
+		// Double-clicking customs.exe should start the program, not flash a usage message.
+		os.Args = append(os.Args, "up", "--open")
+	}
 	if len(os.Args) < 2 {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(2)
@@ -55,6 +60,9 @@ func main() {
 		err = cmdReport(os.Args[2:])
 	case "guide":
 		err = cmdGuide(os.Args[2:])
+	case "version", "--version":
+		fmt.Println(version)
+		return
 	case "-h", "--help", "help":
 		fmt.Print(usage)
 		return

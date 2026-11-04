@@ -26,7 +26,7 @@ func newStore(t *testing.T) *store.Store {
 // The shape below was copied from a real opencode 1.19.5 database.
 func TestOpenCodeImport(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "opencode.db")
-	db, err := sql.Open("sqlite", "file:"+path)
+	db, err := sql.Open("sqlite", store.URI(path, ""))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -32,6 +32,11 @@ type Info struct {
 	DataDir     string   `json:"data_dir"`
 	RelayListen string   `json:"relay_listen"`
 	UIListen    string   `json:"ui_listen"`
+	Binary      string   `json:"binary"`
+	PID         int      `json:"pid"`
+	Platform    string   `json:"platform"`
+	Started     string   `json:"started"`
+	DaemonFile  string   `json:"daemon_file"`
 	Sources     []Source `json:"sources"`
 }
 
@@ -59,6 +64,8 @@ type Server struct {
 	Testset TestsetResults
 	Guide   string
 	plans   plans
+	// Shutdown stops the daemon; signals are not portable to Windows, so the command line asks over HTTP.
+	Shutdown func()
 	// OnTargets is called after the relay targets change, so they can be persisted.
 	OnTargets func()
 }
@@ -76,6 +83,12 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/targets", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, s.Relay.Targets()) })
 	mux.HandleFunc("POST /api/targets", s.addTarget)
 	mux.HandleFunc("GET /api/testset", s.testset)
+	mux.HandleFunc("POST /api/shutdown", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, 200, map[string]string{"status": "stopping"})
+		if s.Shutdown != nil {
+			go s.Shutdown()
+		}
+	})
 	mux.HandleFunc("GET /api/plans", s.listPlans)
 	mux.HandleFunc("POST /api/plans", s.addPlan)
 	mux.HandleFunc("GET /api/plans/{id}", s.getPlan)

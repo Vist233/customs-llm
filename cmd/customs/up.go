@@ -11,8 +11,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -29,7 +31,8 @@ import (
 //go:embed guide.md
 var guideText string
 
-const version = "0.1.0-dev"
+// version is set at build time with -ldflags "-X main.version=...".
+var version = "0.1.0-dev"
 
 func defaultDataDir() string {
 	if v := os.Getenv("CUSTOMS_DATA"); v != "" {
@@ -107,6 +110,7 @@ func cmdUp(args []string) error {
 	litellmURL := fs.String("litellm-url", "", "read this LiteLLM's spend logs (needs its database and an admin key)")
 	litellmKey := fs.String("litellm-key", os.Getenv("CUSTOMS_LITELLM_KEY"), "admin key for --litellm-url (default: $CUSTOMS_LITELLM_KEY)")
 	opencodeDB := fs.String("opencode-db", collect.DefaultOpenCodeDB(), "opencode session database to read; empty turns it off")
+	openBrowser := fs.Bool("open", false, "open the web UI in the default browser")
 	var targets multi
 	fs.Var(&targets, "target", "relay target NAME=UPSTREAM_URL (repeatable)")
 	_ = fs.Parse(args)
@@ -119,6 +123,14 @@ func cmdUp(args []string) error {
 	}
 	if err := os.MkdirAll(*data, 0o700); err != nil {
 		return err
+	}
+	// A second launch (a double-click, say) just shows the one already running.
+	if c, err := newClient(*data); err == nil && c.get("/api/status", nil) == nil {
+		fmt.Printf("customs 已在运行: http://%s\n", c.d.UI)
+		if *openBrowser {
+			openURL("http://" + c.d.UI)
+		}
+		return nil
 	}
 	st, err := store.Open(*data)
 	if err != nil {
@@ -159,11 +171,18 @@ func cmdUp(args []string) error {
 	if err != nil {
 		return err
 	}
+	binary, _ := os.Executable()
+	startedAt := time.Now().Format(time.RFC3339)
 	srv := &api.Server{Store: st, Relay: rl, Hub: hub, Token: token, Testset: ts, Guide: guideText,
 		Info: func() api.Info {
-			return api.Info{Version: version, DataDir: *data, RelayListen: *relayAddr, UIListen: *uiAddr, Sources: sources(rl, collectors)}
+			return api.Info{Version: version, DataDir: *data, RelayListen: *relayAddr, UIListen: *uiAddr, Binary: binary, PID: os.Getpid(), Platform: runtime.GOOS + "/" + runtime.GOARCH,
+				Started: startedAt, DaemonFile: filepath.Join(*data, "daemon.json"), Sources: sources(rl, collectors)}
 		},
 		OnTargets: func() { saveTargets(*data, rl) }}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	srv.Shutdown = stop
 
 	relayLn, err := net.Listen("tcp", *relayAddr)
 	if err != nil {
@@ -198,8 +217,9 @@ func cmdUp(args []string) error {
 		fmt.Printf("  目标   %s → %s\n", t.Name, t.Upstream)
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
+	if *openBrowser {
+		openURL("http://" + df.UI)
+	}
 	for _, c := range collectors {
 		go collect.Run(ctx, c, 10*time.Second, "每 10 秒读取一次")
 	}
@@ -209,6 +229,21 @@ func cmdUp(args []string) error {
 	_ = relaySrv.Shutdown(sctx)
 	_ = uiSrv.Shutdown(sctx)
 	return nil
+}
+
+func openURL(u string) {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", u)
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", u)
+	default:
+		cmd = exec.Command("xdg-open", u)
+	}
+	if err := cmd.Start(); err != nil {
+		fmt.Fprintln(os.Stderr, "无法打开浏览器,请手动访问", u)
+	}
 }
 
 func sources(rl *relay.Relay, collectors []collect.Collector) []api.Source {

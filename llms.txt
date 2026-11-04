@@ -1,0 +1,15 @@
+# customs-llm
+
+> Local tool that records what an LLM request sent and received at every hop, compares hops item by item, and tests LLM gateways against cases from real GitHub issues. Supports OpenAI Chat Completions, OpenAI Responses and Anthropic Messages. Single binary, no AI inside, listens on loopback only.
+
+## Docs
+
+- [README](https://raw.githubusercontent.com/Vist233/customs-llm/main/README.md): what it does, how to run it, FAQ
+- [Measured results](https://raw.githubusercontent.com/Vist233/customs-llm/main/docs/findings.md): LiteLLM, magpie and opencode results, with limits
+- [Agent handbook](https://raw.githubusercontent.com/Vist233/customs-llm/main/cmd/customs/guide.md): commands and rules for AI agents
+- [Test set](https://raw.githubusercontent.com/Vist233/customs-llm/main/testset/README.md): case format and how to add one
+
+## Optional
+
+- [Design](https://raw.githubusercontent.com/Vist233/customs-llm/main/docs/design.md): architecture and data model
+- [Releases](https://github.com/Vist233/customs-llm/releases): macOS, Windows and Linux downloads
