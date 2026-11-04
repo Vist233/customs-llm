@@ -29,7 +29,7 @@ LLM 请求出问题时,你不知道是哪一环造成的。
 
 ## 3. 非目标(现阶段)
 
-- **脱敏:先不做。** 记录原样保存。因此:数据库文件权限 0600,所有端口只监听 `127.0.0.1`,界面顶部常驻提示"本地记录含密钥与对话原文"。以后要分享报告再做脱敏。
+- **本地存储不脱敏。** 记录原样保存,数据库文件权限 0600,所有端口只监听回环地址,界面顶部常驻提示。**出口脱敏已实现:** 命令行输出和报告默认脱敏(`internal/redact`),`--raw` 才显示原文。
 - 请求重放与多目标对比、Gemini / Bedrock 等其他协议的解析和测试模型:都在第 13 节的后期里程碑。
 - 托管版、多用户、云端存储。
 
@@ -70,7 +70,7 @@ LLM 请求出问题时,你不知道是哪一环造成的。
 | `api` | 给前端的 JSON 接口和 SSE 推送 | 列表接口不返回消息体 |
 | `web` | 内嵌的前端 | 见第 8 节 |
 
-目录:`internal/{model,store,relay,fakeup,collect/<name>,driver/<name>,ir,checks,testset,bugsim,api}`,命令在 `cmd/{customs,tsctl}`,测试集在 `testset/`,前端在 `web/`。
+目录:`internal/{model,store,relay,fakeup,collect/<name>,driver/<name>,ir,checks,testset,bugsim,api}`,命令在 `cmd/{customs,tsctl}`,测试集在 `testset/`,前端在 `internal/api/webdist/`(无构建步骤的原生 JS)。
 
 ### 4.2 `ir` 是枢纽
 
@@ -249,11 +249,11 @@ daemon.json       端口与控制接口令牌(权限 0600)
 |---|---|---|
 | 日志位置 | 数据目录下的 `log/` 目录,单文件 `opencode.log`,所有进程共用、只追加;超过 50 MiB 就从头部裁到约 25 MiB | 已核实(`global.ts`、`logging.ts`)。另有 `local` 模式,文件名可能不同,**未核实** |
 | 日志格式 | 每行 `key=value`:`timestamp level run message ...` 加上下文标注 | 已核实 |
-| 日志里有什么 | 流开始、provider、model、session 等事件(来自 issue opencode#59872 的日志样例)。**不含请求体和响应体**这一点是推断 | 部分 |
+| 日志里有什么 | **1.19.5 实测:这个文件是空的**,只有 `--print-logs` 才输出到 stderr。采集改读 `opencode.db` 的 `message` 表 | 已实测 |
 | 提高详细度 | `OPENCODE_LOG_LEVEL=DEBUG`、`OPENCODE_PRINT_LOGS=1`、`--print-logs`、`--log-level` | 已核实(`cli.mdx`) |
 | 接入方式 | 用环境变量 `OPENCODE_CONFIG_CONTENT`(内联 JSON 配置)只对本次进程覆盖 provider 的 `baseURL`,不改磁盘上的配置 | 变量已核实;覆盖 provider baseURL 的 JSON 形状**未核实** |
 | 托管的 opencode Go | 服务端日志拿不到。只能靠中转记录客户端到服务的这一跳 | — |
-| 会话存储 | 新版本用数据库(SQLite)存会话,有 `session_message` 表(来自 issue 报错信息) | 表结构**未核实** |
+| 会话存储 | SQLite `opencode.db`。`message.data` 是 JSON:模型、token、耗时、finish、error(含 statusCode、responseBody)。对话内容在 `part`,不读取 | 已实测 |
 
 ### 6.3 magpie(本地网关)
 
@@ -393,7 +393,7 @@ upstream = "https://opencode.ai/zen/go"  # 托管服务:只能记录客户端到
 ### 8.4 前端技术
 
 - 内嵌进二进制的本地 Web 应用(Go `embed`),用浏览器打开,默认 `127.0.0.1:7070`。
-- 框架倾向 Preact 或 Svelte 加 Vite,体积小、不依赖重型运行时。**最终选型在 M1 开始时确定。**
+- 第一版用原生 JS,没有构建步骤和依赖。
 - 耗时瀑布图手写 SVG,不引入图表库。
 - 先不做桌面壳:浏览器即可使用,也避开签名与公证问题。
 - 暗色优先,支持浅色。键盘可操作:上下键切换请求,`Tab` 切换详情标签。
@@ -463,7 +463,7 @@ upstream = "https://opencode.ai/zen/go"  # 托管服务:只能记录客户端到
 2. 本程序向这个测试模型发数据集里的用例;假上游记录网关实际发出的字节,并返回预设响应。
 3. 测完删除测试条目。删除前把条目 ID 写入清单文件 `~/.customs-llm/overrides.json`,程序崩溃后下次启动先清理。
 
-第一版**按协议各建一种测试模型**,共三种:走 OpenAI Chat 路径、OpenAI Responses 路径、Anthropic Messages 路径。
+第一版**按协议各建测试模型**:走 OpenAI Chat 路径、OpenAI Responses 路径、Anthropic Messages 路径。
 一次探测可以只测其中一条路径,也可以三条都测;假上游对应实现这三种协议的响应格式(含流式)。其他协议(Gemini、Bedrock 等)后续按需增加。
 
 不同网关里这三条路径的配置方式不同,驱动要各自处理。例如 magpie 的自定义 provider 本来就分 `url=`(Chat)、`responses=`、`anthropic=` 三个入口,正好对应;
@@ -478,8 +478,8 @@ LiteLLM 的 Responses 路径怎么配(模型前缀或 `mode`)需要核实。
 
 | 网关 | 新增 / 删除测试条目的入口 | 状态 |
 |---|---|---|
-| magpie | `magpie provider add "<名>" url=<假上游> models=<测试模型>` / `magpie provider rm <名>` | 已核实(文档) |
-| LiteLLM | `POST /model/new` / `POST /model/delete`(路由存在于源码路由表) | 前提未核实:是否需要 `store_model_in_db`、需要哪种管理员 key |
+| magpie | `magpie provider add` / `provider rm`,每个 provider 只给一个入口(`url=`、`responses=` 或 `anthropic=`),否则会优先走和客户端相同的协议 | 已实测(0.1.2915) |
+| LiteLLM | `POST /model/new` / `POST /model/delete` | 已实测:需要数据库和 `STORE_MODEL_IN_DB`,master key 可用。pass-through 也需要数据库 |
 | new-api | 管理端渠道增删接口 | 未核实:只找到 `POST /:id/key`,增删路由未找到 |
 | Portkey | 每个请求自带自定义主机,无需新增条目 | 源码有 `customHost`;请求头确切名字未核实 |
 | claude-code-router | provider / profile 新增 | 未核实 |
@@ -640,3 +640,7 @@ GitHub 上暂无同名项目(检查于 2026-11)。
 - Go 模块路径:`github.com/Vist233/customs-llm`。
 - 数据目录:`~/.customs-llm/`。
 - 命令行命令:暂用 `customs`(短,易敲);也可以改成 `customs-llm`,待定。
+
+## 16. 实测状态
+
+实测结果见 [findings.md](findings.md)。第 14 节里已解决:LiteLLM 运行时加模型的前提、magpie 驱动、opencode 日志和数据库、`--detailed_debug` 之外的出站记录仍未核实。未解决:new-api、claude-code-router、Portkey 的驱动和日志;LiteLLM 用量日志的写入时机和请求内容;Claude Code、Codex 经 `customs run` 的实际运行;Windows。Bedrock 流式(AWS event-stream)假上游没有实现。

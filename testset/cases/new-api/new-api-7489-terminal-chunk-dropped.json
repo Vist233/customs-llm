@@ -49,5 +49,41 @@
       "[DONE]"
     ]
   },
-  "notes": "Payload reconstructed from the issue title; the issue body has no raw stream capture."
+  "notes": "Payload reconstructed from the issue title; the issue body has no raw stream capture.",
+  "examples": {
+    "good": {
+      "comments": [],
+      "events": [
+        {
+          "choices": [
+            {
+              "delta": {
+                "content": "hi",
+                "role": "assistant"
+              },
+              "index": 0
+            }
+          ],
+          "created": 1793782468,
+          "id": "c1",
+          "model": "customs-chat",
+          "object": "chat.completion.chunk"
+        },
+        {
+          "choices": [
+            {
+              "delta": {},
+              "finish_reason": "stop",
+              "index": 0
+            }
+          ],
+          "created": 1793782468,
+          "id": "c1",
+          "model": "customs-chat",
+          "object": "chat.completion.chunk"
+        },
+        "[DONE]"
+      ]
+    }
+  }
 }

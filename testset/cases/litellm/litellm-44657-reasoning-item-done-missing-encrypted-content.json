@@ -55,5 +55,63 @@
       "{\"type\":\"response.output_item.done\",\"sequence_number\":1,\"output_index\":0,\"item\":{\"id\":\"rs_1\",\"type\":\"reasoning\",\"summary\":[],\"encrypted_content\":\"ENC-BLOB-1\"}}",
       "{\"type\":\"response.completed\",\"sequence_number\":2,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"completed\",\"model\":\"m\",\"output\":[{\"id\":\"rs_1\",\"type\":\"reasoning\",\"summary\":[],\"encrypted_content\":\"ENC-BLOB-1\"}],\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}"
     ]
+  },
+  "examples": {
+    "good": {
+      "comments": [],
+      "events": [
+        {
+          "model": "customs-responses",
+          "response": {
+            "created_at": 0,
+            "id": "resp_oSniFWN6Wx1dJnrdpWwaDRrkWAEh_yHgxbiCQcZ0RuyszQX82rucRRpZT7Z34oxrRUOMmf4zTaN1jty0Xd1Egzw1p8uPVg6fXtZ_Zi8PFEhOQX9b27qlZ-SG5BnrXsFly3DylD4JjgBHoaMXNdt-PxRGW05iN1TGtNBmglu3fzjMXgGZXqpUq2qnLng0puEWVpuqgEy7KiOXQ4Yu_5O9lXoqk-FdhDtidT2AvJesdYpjOYehTnRFaCe437Oubkgedir7Mh20lZFDqpUIHXp56f-WB3JhE38DJqhAstOSgTX15Bag8W0jOOJX9Sw3nZRKx_uFGWKVxs8su9mtL4joDz2ykEGyzP-3DbtutESqj6imaWIRHYdSLV5ye6UusMQKcFU=",
+            "model": "m",
+            "object": "response",
+            "output": [],
+            "status": "in_progress"
+          },
+          "sequence_number": 0,
+          "type": "response.created"
+        },
+        {
+          "item": {
+            "encrypted_content": "ENC-BLOB-1",
+            "id": "rs_1",
+            "summary": [],
+            "type": "reasoning"
+          },
+          "model": "customs-responses",
+          "output_index": 0,
+          "sequence_number": 1,
+          "type": "response.output_item.done"
+        },
+        {
+          "model": "customs-responses",
+          "response": {
+            "created_at": 0,
+            "id": "resp_oSniFWN6Wx1dJnrdpWwaDRrkWAEh_yHgxbiCQcZ0RuyszQX82rucRRpZT7Z34oxrRUOMmf4zTaN1jty0Xd1Egzw1p8uPVg6fXtZ_Zi8PFEhOQX9b27qlZ-SG5BnrXsFly3DylD4JjgBHoaMXNdt-PxRGW05iN1TGtNBmglu3fzjMXgGZXqpUq2qnLng0puEWVpuqgEy7KiOXQ4Yu_5O9lXoqk-FdhDtidT2AvJesdYpjOYehTnRFaCe437Oubkgedir7Mh20lZFDqpUIHXp56f-WB3JhE38DJqhAstOSgTX15Bag8W0jOOJX9Sw3nZRKx_uFGWKVxs8su9mtL4joDz2ykEGyzP-3DbtutESqj6imaWIRHYdSLV5ye6UusMQKcFU=",
+            "model": "m",
+            "object": "response",
+            "output": [
+              {
+                "encrypted_content": "ENC-BLOB-1",
+                "id": "rs_1",
+                "summary": [],
+                "type": "reasoning"
+              }
+            ],
+            "status": "completed",
+            "usage": {
+              "input_tokens": 1,
+              "output_tokens": 1,
+              "total_tokens": 2
+            }
+          },
+          "sequence_number": 2,
+          "type": "response.completed"
+        },
+        "[DONE]"
+      ]
+    }
   }
 }

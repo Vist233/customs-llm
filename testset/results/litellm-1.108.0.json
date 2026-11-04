@@ -1,15 +1,5 @@
 {
  "gateway": "litellm",
- "version": "1.108.0",
- "image": "ghcr.io/berriai/litellm:main-stable@sha256:c560d317136880ea92d62334d4367ab10955b1af189dd3ea24f6551290b1d6c1",
- "run_date": "2026-11-04",
- "setup": "gateways/litellm (docker compose with Postgres)",
- "meaning": {
-  "PASS": "assertions hold: the gateway kept what the case requires",
-  "FAIL": "an assertion is violated: the reported behaviour is present",
-  "INCONCLUSIVE": "the run could not test the case on this setup",
-  "SKIP": "the case cannot run with this setup"
- },
  "results": [
   {
    "id": "claude-code-router-1587-sse-usage-dropped",
@@ -32,8 +22,7 @@
   {
    "id": "litellm-24051-schema-mutated-across-fallback",
    "outcome": "SKIP",
-   "detail": "needs precondition: router with fallback gemini -> openai; first upstream (gemini) returns a retryable error; assertion applies to the final upstream request",
-   "upstream_path": ""
+   "detail": "needs precondition: router with fallback gemini -\u003e openai; first upstream (gemini) returns a retryable error; assertion applies to the final upstream request"
   },
   {
    "id": "litellm-39735-named-tool-choice-dropped",
@@ -80,8 +69,7 @@
   {
    "id": "litellm-43582-router-settings-override-leak",
    "outcome": "SKIP",
-   "detail": "needs precondition: virtual key or team with router_settings; callback that sets data[\"api_key\"] in async_pre_call_hook",
-   "upstream_path": ""
+   "detail": "needs precondition: virtual key or team with router_settings; callback that sets data[\"api_key\"] in async_pre_call_hook"
   },
   {
    "id": "litellm-43737-anthropic-document-block",
@@ -158,8 +146,7 @@
   {
    "id": "litellm-46701-azure-ad-token-leak",
    "outcome": "SKIP",
-   "detail": "needs precondition: deployment whose litellm_params set azure_ad_token, client_id and tenant_id",
-   "upstream_path": ""
+   "detail": "needs precondition: deployment whose litellm_params set azure_ad_token, client_id and tenant_id"
   },
   {
    "id": "litellm-47169-messages-bridge-reorders-tool-calls",
@@ -176,8 +163,7 @@
   {
    "id": "litellm-48813-oci-gemini-system-messages",
    "outcome": "SKIP",
-   "detail": "no fake model for openai_chat -> other",
-   "upstream_path": ""
+   "detail": "no fake model for openai_chat -\u003e other"
   },
   {
    "id": "litellm-49479-jsonrpc-id-stripped",
@@ -254,8 +240,7 @@
   {
    "id": "new-api-7455-tool-schema-keywords-stripped",
    "outcome": "SKIP",
-   "detail": "no fake model for openai_chat -> other",
-   "upstream_path": ""
+   "detail": "no fake model for openai_chat -\u003e other"
   },
   {
    "id": "new-api-7489-terminal-chunk-dropped",
@@ -302,8 +287,7 @@
   {
    "id": "portkey-1832-bedrock-stream-exception-dropped",
    "outcome": "SKIP",
-   "detail": "fake upstream cannot speak aws_eventstream yet",
-   "upstream_path": ""
+   "detail": "fake upstream cannot speak aws_eventstream yet"
   },
   {
    "id": "portkey-1838-google-assistant-text-with-tool-calls",
@@ -317,5 +301,7 @@
    "detail": "upstream_request contains \"This is a mid-turn system message\"",
    "upstream_path": "/v1beta/models/customs-gemini:generateContent"
   }
- ]
+ ],
+ "run_date": "2026-11-04",
+ "version": "1.108.0"
 }

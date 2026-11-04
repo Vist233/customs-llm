@@ -19,7 +19,9 @@ usage:
   customs guide                              instructions for an AI agent
   customs testset validate|list|stats [--dir DIR]
   customs fakeup --listen ADDR
-  customs probe run --url GATEWAY_URL [flags]
+  customs probe plan --driver litellm|magpie --url URL    propose temporary test models (needs approval in the UI)
+  customs probe run --plan ID | --url URL                 run the test set against a gateway
+  customs probe cleanup                                   remove test models left behind
 
 Run "customs <command> -h" for the flags of a command.
 `
@@ -59,6 +61,9 @@ func main() {
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n%s", os.Args[1], usage)
 		os.Exit(2)
+	}
+	if err == nil && findings {
+		os.Exit(10)
 	}
 	if err != nil {
 		var ee *exitError

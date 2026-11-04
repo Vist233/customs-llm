@@ -78,5 +78,48 @@
     }
   ],
   "observed": "Named tool_choice survives as mode ANY plus allowed_function_names, but nothing carries the single-call restriction.",
-  "notes": "Weak check: allowed_function_names alone does not restrict call count. Needs a human decision on what counts as a faithful encoding."
+  "notes": "Weak check: allowed_function_names alone does not restrict call count. Needs a human decision on what counts as a faithful encoding.",
+  "examples": {
+    "good": {
+      "contents": [
+        {
+          "parts": [
+            {
+              "text": "weather in two cities"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "toolConfig": {
+        "functionCallingConfig": {
+          "allowed_function_names": [
+            "get_weather"
+          ],
+          "mode": "ANY"
+        }
+      },
+      "tools": [
+        {
+          "function_declarations": [
+            {
+              "description": "Get weather",
+              "name": "get_weather",
+              "parameters": {
+                "properties": {
+                  "city": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "city"
+                ],
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
 }

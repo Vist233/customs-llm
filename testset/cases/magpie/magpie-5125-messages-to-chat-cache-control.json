@@ -50,5 +50,26 @@
       "text": "cache_control"
     }
   ],
-  "observed": "Upstream reports cache_creation 0 and cache_read 0 on /v1/messages while the same content on /v1/chat/completions caches fine."
+  "observed": "Upstream reports cache_creation 0 and cache_read 0 on /v1/messages while the same content on /v1/chat/completions caches fine.",
+  "examples": {
+    "bad": {
+      "max_tokens": 16,
+      "messages": [
+        {
+          "content": "LONG-PREFIX LONG-PREFIX LONG-PREFIX LONG-PREFIX ",
+          "role": "system"
+        },
+        {
+          "content": [
+            {
+              "text": "hi",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "model": "customs-chat"
+    }
+  }
 }

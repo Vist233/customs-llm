@@ -66,5 +66,56 @@
       }
     }
   },
-  "notes": "The issue lists more defects in the same bridge (null finish_reason, temperature always 0). Add separate cases for those."
+  "notes": "The issue lists more defects in the same bridge (null finish_reason, temperature always 0). Add separate cases for those.",
+  "examples": {
+    "good": {
+      "created_at": 1,
+      "error": null,
+      "id": "resp_ucxOItQNT2kKlz6I3m4mXOqZlwFRymNS8e16hjJAq6M-MpJi5E81h6Gmw1itMnWcr70C69i7lyw3-qIWJRC2nPDVWOTeIoc7h7zyBTaVWb-Aw_fYX5t0WD7ZnFLMIOYtBhgamshFUA_2zDgul5pAISnRDExz0rEz2ZAquRxDVKN4GoIBZaM-MFAMXlVEJEsYUEGWwjB0j_lZfnP8-LV4XtEDFwU8Q-5xqsB1Bvz2PJg11_VsIlaA0icGuXKtEQeaGltc8ePSvRiRdmyaCkP38GI4HOFswbhaHKtS8P9Q_ldXLkKZYpe-ndvgeNOlZjHHpIb6eu_-6-woEik-qmxQxeuYpkh86wThtClUB6mmw-ZHLq9Vko8AmEeg",
+      "incomplete_details": {
+        "reason": "max_output_tokens"
+      },
+      "instructions": null,
+      "max_output_tokens": 16,
+      "metadata": {},
+      "model": "customs-chat-bridge",
+      "object": "response",
+      "output": [
+        {
+          "content": [
+            {
+              "annotations": [],
+              "text": "partial text",
+              "type": "output_text"
+            }
+          ],
+          "id": "msg_accc5832-5ff4-4ed2-b7c6-81e5d447c740",
+          "phase": null,
+          "role": "assistant",
+          "status": "incomplete",
+          "type": "message"
+        }
+      ],
+      "parallel_tool_calls": false,
+      "previous_response_id": null,
+      "reasoning": null,
+      "status": "incomplete",
+      "store": null,
+      "temperature": null,
+      "text": {},
+      "tool_choice": "auto",
+      "tools": [],
+      "top_p": null,
+      "truncation": null,
+      "usage": {
+        "cost": null,
+        "input_tokens": 5,
+        "input_tokens_details": null,
+        "output_tokens": 16,
+        "output_tokens_details": null,
+        "total_tokens": 21
+      },
+      "user": null
+    }
+  }
 }

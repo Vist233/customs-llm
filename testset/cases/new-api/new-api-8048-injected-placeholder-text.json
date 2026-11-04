@@ -61,5 +61,58 @@
       "why": "a placeholder text block must not be invented"
     }
   ],
-  "observed": "An assistant turn with only tool_calls gets a fabricated text block \"...\" because the emptiness check ignores tool_calls."
+  "observed": "An assistant turn with only tool_calls gets a fabricated text block \"...\" because the emptiness check ignores tool_calls.",
+  "examples": {
+    "good": {
+      "max_tokens": 64,
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "list files",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        },
+        {
+          "content": [
+            {
+              "text": "[System: Empty message content sanitised to satisfy protocol]",
+              "type": "text"
+            },
+            {
+              "id": "call_1",
+              "input": {},
+              "name": "ls",
+              "type": "tool_use"
+            }
+          ],
+          "role": "assistant"
+        },
+        {
+          "content": [
+            {
+              "content": "a.txt",
+              "tool_use_id": "call_1",
+              "type": "tool_result"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "model": "customs-anthropic",
+      "tools": [
+        {
+          "description": "This is a dummy tool call",
+          "input_schema": {
+            "properties": {},
+            "type": "object"
+          },
+          "name": "dummy_tool",
+          "type": "custom"
+        }
+      ]
+    }
+  }
 }

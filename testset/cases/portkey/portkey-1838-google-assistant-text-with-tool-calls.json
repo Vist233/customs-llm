@@ -59,5 +59,38 @@
       "text": "foo"
     }
   ],
-  "observed": "Gemini receives the functionCall part only; the assistant's text part is gone."
+  "observed": "Gemini receives the functionCall part only; the assistant's text part is gone.",
+  "examples": {
+    "good": {
+      "contents": [
+        {
+          "parts": [
+            {
+              "text": "hi"
+            }
+          ],
+          "role": "user"
+        },
+        {
+          "parts": [
+            {
+              "text": "Thinking..."
+            },
+            {
+              "function_call": {
+                "args": {},
+                "id": "call_1",
+                "name": "foo"
+              },
+              "thoughtSignature": "c2tpcF90aG91Z2h0X3NpZ25hdHVyZV92YWxpZGF0b3I="
+            }
+          ],
+          "role": "model"
+        }
+      ],
+      "generationConfig": {
+        "max_output_tokens": 10
+      }
+    }
+  }
 }

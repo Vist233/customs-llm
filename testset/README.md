@@ -52,8 +52,10 @@ lines. In `upstream.sse`, an entry starting with `:` is a comment line.
 ## Status and caveats
 
 - **Corner cases are marked in `notes`** (zero values, nested parts, ordering, absent versus zero, replayability).
-- **No case has been run against a real gateway yet** (`verified: false` everywhere). Payloads and assertions
-  come from issue text. Treat them as hypotheses until verified.
+- `verified: true` means the case produced PASS or FAIL on a real gateway (see `results/`), not that a person reviewed
+  the verdict. Cases where the gateway has no matching route stay unverified.
+- `examples` were recorded from a real LiteLLM run: `bad` when it failed, `good` when it passed. They guard against
+  regressions in the checker.
 - `payload_origin: reconstructed` means the issue gave no raw payload; the case uses a minimal one we wrote.
 - `litellm-48813-oci-gemini-system-messages` is kept with `detectable: no`: the loss happens inside the
   provider, so a boundary checker cannot see it. It documents a blind spot.

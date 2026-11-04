@@ -75,5 +75,51 @@
       "{\"model\":\"qwen3-coder-30b-a3b-instruct:q4km\",\"message\":{\"role\":\"assistant\",\"content\":\"\",\"tool_calls\":[{\"function\":{\"name\":\"get_weather\",\"arguments\":{\"city\":\"北京\"}}}]},\"done\":true,\"done_reason\":\"stop\"}"
     ]
   },
-  "notes": "Argument values are not asserted: gateways may escape non-ASCII inside the arguments string."
+  "notes": "Argument values are not asserted: gateways may escape non-ASCII inside the arguments string.",
+  "examples": {
+    "good": {
+      "comments": [],
+      "events": [
+        {
+          "choices": [
+            {
+              "delta": {
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"city\": \"\\u5317\\u4eac\"}",
+                      "name": "get_weather"
+                    },
+                    "id": "bbb810e3-03aa-473a-845d-1c2528549bce",
+                    "index": 0,
+                    "type": "function"
+                  }
+                ]
+              },
+              "index": 0
+            }
+          ],
+          "created": 1793782468,
+          "id": "18abe0b0-f4dc-4dfd-8ca3-df1f59399244",
+          "model": "customs-ollama",
+          "object": "chat.completion.chunk"
+        },
+        {
+          "choices": [
+            {
+              "delta": {},
+              "finish_reason": "tool_calls",
+              "index": 0
+            }
+          ],
+          "created": 1793782468,
+          "id": "18abe0b0-f4dc-4dfd-8ca3-df1f59399244",
+          "model": "customs-ollama",
+          "object": "chat.completion.chunk"
+        },
+        "[DONE]"
+      ]
+    }
+  }
 }

@@ -6,9 +6,11 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -42,6 +44,30 @@ type Relay struct {
 
 	mu      sync.RWMutex
 	targets map[string]*url.URL
+	// recent remembers when each request body was last seen, to spot retry loops.
+	recent map[[32]byte][]time.Time
+}
+
+// repeatWindow is how far back an identical request counts as a repeat.
+const repeatWindow = 2 * time.Minute
+
+// repeats records this body and returns how many identical requests arrived within the window, this one included.
+func (r *Relay) repeats(target string, body []byte, now time.Time) int {
+	key := sha256.Sum256(append([]byte(target+"\x00"), body...))
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.recent == nil || len(r.recent) > 4096 {
+		r.recent = map[[32]byte][]time.Time{}
+	}
+	kept := r.recent[key][:0]
+	for _, t := range r.recent[key] {
+		if now.Sub(t) < repeatWindow {
+			kept = append(kept, t)
+		}
+	}
+	kept = append(kept, now)
+	r.recent[key] = kept
+	return len(kept)
 }
 
 func New(st *store.Store) *Relay {
@@ -127,6 +153,9 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	ctx := context.Background()
 	_ = r.Store.SaveHop(ctx, h)
+	if n := r.repeats(name, body, start); n > 1 {
+		_ = r.Store.SetFlags(ctx, h.TraceID, []string{fmt.Sprintf("相同请求第 %d 次", n)})
+	}
 	r.changed(h.TraceID)
 
 	out, err := http.NewRequestWithContext(req.Context(), req.Method, target.String(), bytes.NewReader(body))
@@ -153,6 +182,13 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			r.changed(h.TraceID)
 			return
 		}
+		if isConnDrop(err) {
+			// The upstream dropped the connection: do the same to the client, a 502 would change what it observes.
+			h.Error, h.Ended = "upstream dropped the connection before answering: "+err.Error(), time.Now()
+			_ = r.Store.SaveHop(ctx, h)
+			r.changed(h.TraceID)
+			panic(http.ErrAbortHandler)
+		}
 		r.fail(ctx, h, w, http.StatusBadGateway, "upstream request failed: "+err.Error())
 		return
 	}
@@ -160,6 +196,9 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	h.Status = resp.StatusCode
 	h.RespHdr = flat(resp.Header)
+	if id := resp.Header.Get("X-Litellm-Call-Id"); id != "" {
+		_ = r.Store.Link(ctx, "litellm:"+id, h.TraceID)
+	}
 	stream := strings.Contains(resp.Header.Get("Content-Type"), "event-stream") || strings.Contains(resp.Header.Get("Content-Type"), "ndjson")
 	h.Streaming = h.Streaming || stream
 	for k, vs := range resp.Header {
@@ -177,6 +216,7 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	sse := &sseParser{start: start}
 	buf := make([]byte, 32<<10)
 	var readErr error
+	upstreamBroke := false
 	for {
 		n, err := resp.Body.Read(buf)
 		if n > 0 {
@@ -201,7 +241,11 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 		if err != nil {
 			if err != io.EOF {
-				readErr = err
+				if req.Context().Err() != nil {
+					readErr = errors.New("client closed the connection while the response was streaming")
+				} else {
+					readErr, upstreamBroke = err, true
+				}
 			}
 			break
 		}
@@ -226,6 +270,14 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	_ = r.Store.SaveHop(ctx, h)
 	r.changed(h.TraceID)
+	if upstreamBroke {
+		panic(http.ErrAbortHandler) // ending normally would show the client a clean end of stream
+	}
+}
+
+func isConnDrop(err error) bool {
+	s := err.Error()
+	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) || strings.Contains(s, "EOF") || strings.Contains(s, "connection reset")
 }
 
 func (r *Relay) clip(b []byte) []byte {

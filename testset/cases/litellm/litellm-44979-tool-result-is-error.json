@@ -82,5 +82,41 @@
       ]
     }
   ],
-  "observed": "The outbound role=tool message carries only tool_call_id and content; nothing marks the result as an error, so some models report the failed deploy as a success."
+  "observed": "The outbound role=tool message carries only tool_call_id and content; nothing marks the result as an error, so some models report the failed deploy as a success.",
+  "examples": {
+    "bad": {
+      "max_tokens": 64,
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "deploy it",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{}",
+                "name": "deploy"
+              },
+              "id": "toolu_1",
+              "index": 0,
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "deploy failed: exit 1",
+          "role": "tool",
+          "tool_call_id": "toolu_1"
+        }
+      ],
+      "model": "customs-chat"
+    }
+  }
 }

@@ -44,5 +44,23 @@
     }
   ],
   "observed": "A falsy-zero check drops the field, so Gemini uses its default temperature instead of deterministic output.",
-  "notes": "Corner case: zero, false and empty string are valid values. Worth testing top_p 0, n 0 and false booleans the same way."
+  "notes": "Corner case: zero, false and empty string are valid values. Worth testing top_p 0, n 0 and false booleans the same way.",
+  "examples": {
+    "good": {
+      "contents": [
+        {
+          "parts": [
+            {
+              "text": "hi"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "generationConfig": {
+        "max_output_tokens": 10,
+        "temperature": 0
+      }
+    }
+  }
 }

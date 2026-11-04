@@ -120,6 +120,9 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	s.mu.Unlock()
 	var req map[string]any
 	_ = json.Unmarshal(body, &req)
+	if m, _ := req["model"].(string); strings.HasPrefix(m, "fault-") && fault(w, r, m) {
+		return
+	}
 	stream, _ := req["stream"].(bool)
 	model, _ := req["model"].(string)
 	lp := strings.ToLower(r.URL.Path)
@@ -135,10 +138,123 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if script != nil {
+		if stream && len(script.SSE) == 0 && script.Status < 400 {
+			if st := streamed(proto, script); st != nil {
+				script = st
+			}
+		}
 		replyScript(w, proto, script)
 		return
 	}
 	replyDefault(w, proto, stream, model, req)
+}
+
+// streamed renders a scripted whole reply as a stream, for gateways that always ask the upstream to stream.
+func streamed(protocol string, m *testset.MockUpstream) *testset.MockUpstream {
+	var o map[string]any
+	if json.Unmarshal(m.Body, &o) != nil {
+		return nil
+	}
+	enc := func(v any) string { b, _ := json.Marshal(v); return string(b) }
+	var sse []string
+	switch protocol {
+	case Chat:
+		ch, _ := o["choices"].([]any)
+		if len(ch) == 0 {
+			return nil
+		}
+		c, _ := ch[0].(map[string]any)
+		chunk := func(delta any, fin any) string {
+			return enc(map[string]any{"id": o["id"], "object": "chat.completion.chunk", "created": o["created"], "model": o["model"],
+				"choices": []any{map[string]any{"index": 0, "delta": delta, "finish_reason": fin}}})
+		}
+		sse = append(sse, chunk(c["message"], nil), chunk(map[string]any{}, c["finish_reason"]))
+		if u, ok := o["usage"]; ok {
+			sse = append(sse, enc(map[string]any{"id": o["id"], "object": "chat.completion.chunk", "created": o["created"], "model": o["model"], "choices": []any{}, "usage": u}))
+		}
+		sse = append(sse, "[DONE]")
+	case Responses:
+		seq := 0
+		ev := func(v map[string]any) {
+			v["sequence_number"] = seq
+			seq++
+			sse = append(sse, enc(v))
+		}
+		start := map[string]any{}
+		for k, v := range o {
+			start[k] = v
+		}
+		start["status"], start["output"] = "in_progress", []any{}
+		ev(map[string]any{"type": "response.created", "response": start})
+		out, _ := o["output"].([]any)
+		for i, it := range out {
+			ev(map[string]any{"type": "response.output_item.done", "output_index": i, "item": it})
+		}
+		t := "response.completed"
+		if o["status"] == "incomplete" {
+			t = "response.incomplete"
+		}
+		ev(map[string]any{"type": t, "response": o})
+	default:
+		return nil
+	}
+	return &testset.MockUpstream{Status: m.Status, Header: m.Header, SSE: sse}
+}
+
+// StallLimit bounds how long the stall faults hang when the client never gives up.
+var StallLimit = 10 * time.Minute
+
+// fault reproduces upstream failures on demand, chosen by model name. It reports whether it handled the request.
+func fault(w http.ResponseWriter, r *http.Request, model string) bool {
+	chunk := `data: {"id":"f","object":"chat.completion.chunk","created":1,"model":"` + model + `","choices":[{"index":0,"delta":{"role":"assistant","content":"partial"},"finish_reason":null}]}` + "\n\n"
+	flush := func() {
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+	}
+	wait := func() {
+		select {
+		case <-r.Context().Done():
+		case <-time.After(StallLimit):
+		}
+	}
+	startStream := func() {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(200)
+		_, _ = io.WriteString(w, chunk)
+		flush()
+	}
+	switch model {
+	case "fault-empty400": // an error with no body: the client can only say "HTTP 400"
+		w.WriteHeader(400)
+	case "fault-empty500":
+		w.WriteHeader(500)
+	case "fault-quota-text": // a real reason in a body that is not JSON
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(429)
+		_, _ = io.WriteString(w, "Weekly usage limit reached. Enable usage from your available balance.")
+	case "fault-html502":
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(502)
+		_, _ = io.WriteString(w, "<html><body><h1>502 Bad Gateway</h1></body></html>")
+	case "fault-stall": // accepted, then no byte ever
+		wait()
+		panic(http.ErrAbortHandler)
+	case "fault-stall-midstream": // one chunk, then silence
+		startStream()
+		wait()
+		panic(http.ErrAbortHandler)
+	case "fault-reset": // connection dropped before any byte
+		panic(http.ErrAbortHandler)
+	case "fault-reset-midstream": // connection dropped after one chunk
+		startStream()
+		panic(http.ErrAbortHandler)
+	case "fault-no-terminal": // a stream that ends cleanly but never says it finished
+		startStream()
+	default:
+		return false
+	}
+	return true
 }
 
 // capWriter copies what is written so the reply can be recorded.

@@ -58,6 +58,7 @@ type Server struct {
 	Info    func() Info
 	Testset TestsetResults
 	Guide   string
+	plans   plans
 	// OnTargets is called after the relay targets change, so they can be persisted.
 	OnTargets func()
 }
@@ -75,6 +76,12 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/targets", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, s.Relay.Targets()) })
 	mux.HandleFunc("POST /api/targets", s.addTarget)
 	mux.HandleFunc("GET /api/testset", s.testset)
+	mux.HandleFunc("GET /api/plans", s.listPlans)
+	mux.HandleFunc("POST /api/plans", s.addPlan)
+	mux.HandleFunc("GET /api/plans/{id}", s.getPlan)
+	mux.HandleFunc("POST /api/plans/{id}/approve", s.decidePlan)
+	mux.HandleFunc("POST /api/plans/{id}/reject", s.decidePlan)
+	mux.HandleFunc("POST /api/plans/{id}/consume", s.consumePlan)
 	mux.HandleFunc("GET /api/guide", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
 		_, _ = io.WriteString(w, s.Guide)
@@ -91,7 +98,7 @@ func (s *Server) Handler() http.Handler {
 			// The page learns the token from its own HTML, so only a page served by this host can mutate state.
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.Header().Set("Cache-Control", "no-store")
-			_, _ = w.Write([]byte(strings.Replace(string(b), "__CUSTOMS_TOKEN__", s.Token, 1)))
+			_, _ = w.Write([]byte(strings.NewReplacer("__CUSTOMS_TOKEN__", s.Token, "__CUSTOMS_UI_TOKEN__", s.uiToken()).Replace(string(b))))
 			return
 		}
 		files.ServeHTTP(w, r)
@@ -274,6 +281,15 @@ func (s *Server) reconcile(w http.ResponseWriter, r *http.Request) {
 			rr := ir.ReadResponse(h.Protocol, h.Status, h.RespBody, evs)
 			for k, v := range rr.Facts {
 				facts[k] = v
+			}
+			if h.Status == 0 {
+				delete(facts, "status")
+			}
+			if h.Error != "" && facts["error"] == "" {
+				facts["error"] = h.Error
+			}
+			if rr.Usage == model.UnknownUsage() {
+				rr.Usage = h.Usage
 			}
 			if rr.Finish != "" {
 				facts["finish"] = rr.Finish

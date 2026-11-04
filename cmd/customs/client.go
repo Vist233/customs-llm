@@ -16,6 +16,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/Vist233/customs-llm/internal/driver"
 )
 
 // exitError carries a specific exit code (see guide.md).
@@ -119,6 +121,9 @@ func cmdStatus(args []string) error {
 	} else {
 		fmt.Println("目标: 无。添加: customs target add NAME URL")
 	}
+	if list, _ := driver.LoadManifest(*data); len(list) > 0 {
+		fmt.Printf("注意: 有 %d 个探测计划的测试条目可能遗留在网关上,运行 customs probe cleanup\n", len(list))
+	}
 	if srcs, _ := info["sources"].([]any); len(srcs) > 0 {
 		fmt.Println("来源:")
 		for _, x := range srcs {
@@ -214,8 +219,15 @@ func cmdDown(args []string) error {
 	if err := p.Signal(syscall.SIGTERM); err != nil {
 		return fmt.Errorf("stopping pid %d: %w", d.PID, err)
 	}
-	fmt.Println("已通知常驻进程退出")
-	return nil
+	// Wait, so a following `customs up` does not race with this process shutting down.
+	for i := 0; i < 50; i++ {
+		if p.Signal(syscall.Signal(0)) != nil {
+			fmt.Println("常驻进程已退出")
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return fmt.Errorf("进程 %d 5 秒内没有退出", d.PID)
 }
 
 func cmdGuide(args []string) error {

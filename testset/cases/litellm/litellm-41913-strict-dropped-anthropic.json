@@ -61,5 +61,39 @@
       "text": "\"strict\":true"
     }
   ],
-  "observed": "strict is absent both on the tool and inside input_schema; the call succeeds so nothing signals the constraint is not in force."
+  "observed": "strict is absent both on the tool and inside input_schema; the call succeeds so nothing signals the constraint is not in force.",
+  "examples": {
+    "bad": {
+      "max_tokens": 64,
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "weather?",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "model": "customs-anthropic",
+      "tools": [
+        {
+          "input_schema": {
+            "properties": {
+              "city": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "city"
+            ],
+            "type": "object"
+          },
+          "name": "get_weather",
+          "type": "custom"
+        }
+      ]
+    }
+  }
 }

@@ -89,5 +89,65 @@
     }
   ],
   "observed": "After merging consecutive assistant messages, tool_calls of the merged messages are lost, orphaning the tool results.",
-  "notes": "Payload reconstructed from the issue's described cases; the issue's exact request was not machine-readable."
+  "notes": "Payload reconstructed from the issue's described cases; the issue's exact request was not machine-readable.",
+  "examples": {
+    "good": {
+      "max_tokens": 64,
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "do two things",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        },
+        {
+          "content": [
+            {
+              "id": "call_A",
+              "input": {},
+              "name": "one",
+              "type": "tool_use"
+            },
+            {
+              "id": "call_B",
+              "input": {},
+              "name": "two",
+              "type": "tool_use"
+            }
+          ],
+          "role": "assistant"
+        },
+        {
+          "content": [
+            {
+              "content": "ok-A",
+              "tool_use_id": "call_A",
+              "type": "tool_result"
+            },
+            {
+              "content": "ok-B",
+              "tool_use_id": "call_B",
+              "type": "tool_result"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "model": "customs-anthropic",
+      "tools": [
+        {
+          "description": "This is a dummy tool call",
+          "input_schema": {
+            "properties": {},
+            "type": "object"
+          },
+          "name": "dummy_tool",
+          "type": "custom"
+        }
+      ]
+    }
+  }
 }

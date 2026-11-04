@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"strings"
@@ -79,7 +78,12 @@ func cmdReport(args []string) error {
 	for _, col := range rec.Columns {
 		fmt.Fprintf(&b, ";%s [%s]", col.Name, col.Tier)
 	}
-	fmt.Fprint(&b, ")\n\n| 项 | 差异 | 值 |\n|---|---|---|\n")
+	single := len(rec.Columns) < 2
+	if single {
+		fmt.Fprint(&b, ")\n\n只有一跳记录,以下只是这一跳读到的内容。\n\n| 项 | 值 |\n|---|---|\n")
+	} else {
+		fmt.Fprint(&b, ")\n\n| 项 | 差异 | 值 |\n|---|---|---|\n")
+	}
 	for _, r := range rec.Rows {
 		var cells []string
 		for _, cell := range r.Cells {
@@ -89,9 +93,12 @@ func cmdReport(args []string) error {
 			}
 			cells = append(cells, "`"+v+"`")
 		}
+		if single {
+			fmt.Fprintf(&b, "| %s | %s |\n", r.Label, strings.Join(cells, " → "))
+			continue
+		}
 		fmt.Fprintf(&b, "| %s | %s | %s |\n", r.Label, r.Diff, strings.Join(cells, " → "))
 	}
 	fmt.Print(b.String())
-	_ = json.Marshal
 	return nil
 }

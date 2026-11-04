@@ -65,5 +65,39 @@
     }
   ],
   "observed": "The enum is forwarded as booleans and Gemini rejects the request with HTTP 400.",
-  "notes": "Corner case: a type the target schema dialect does not accept."
+  "notes": "Corner case: a type the target schema dialect does not accept.",
+  "examples": {
+    "good": {
+      "contents": [
+        {
+          "parts": [
+            {
+              "text": "toggle"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "tools": [
+        {
+          "function_declarations": [
+            {
+              "name": "toggle",
+              "parameters": {
+                "properties": {
+                  "on": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "on"
+                ],
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
 }

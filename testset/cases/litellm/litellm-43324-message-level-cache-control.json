@@ -54,5 +54,26 @@
       "why": "a breakpoint must reach Anthropic somewhere"
     }
   ],
-  "observed": "Breakpoint set on a message whose content is a list never reaches the provider; no error. Repeat requests are billed at the full input rate."
+  "observed": "Breakpoint set on a message whose content is a list never reaches the provider; no error. Repeat requests are billed at the full input rate.",
+  "examples": {
+    "bad": {
+      "max_tokens": 16,
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "LONG-PREFIX LONG-PREFIX LONG-PREFIX LONG-PREFIX ",
+              "type": "text"
+            },
+            {
+              "text": "hi",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "model": "customs-anthropic"
+    }
+  }
 }

@@ -80,5 +80,29 @@
       }
     }
   },
-  "notes": "Corner case: message content is an array of typed chunks, not a string."
+  "notes": "Corner case: message content is an array of typed chunks, not a string.",
+  "examples": {
+    "bad": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": ".",
+            "role": "assistant"
+          },
+          "provider_specific_fields": {}
+        }
+      ],
+      "created": 0,
+      "id": "test",
+      "model": "customs-mistral",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 12,
+        "prompt_tokens": 10,
+        "total_tokens": 22
+      }
+    }
+  }
 }

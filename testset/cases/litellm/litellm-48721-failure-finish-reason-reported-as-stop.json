@@ -59,5 +59,31 @@
         }
       ]
     }
+  },
+  "examples": {
+    "bad": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "partial",
+            "role": "assistant"
+          },
+          "provider_specific_fields": {
+            "native_finish_reason": "abort"
+          }
+        }
+      ],
+      "created": 1,
+      "id": "c1",
+      "model": "customs-chat",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 0,
+        "prompt_tokens": 0,
+        "total_tokens": 0
+      }
+    }
   }
 }

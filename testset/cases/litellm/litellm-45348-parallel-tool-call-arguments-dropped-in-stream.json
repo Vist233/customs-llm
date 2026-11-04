@@ -85,5 +85,74 @@
       "{\"type\":\"response.completed\",\"sequence_number\":7,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"completed\",\"model\":\"m\",\"output\":[],\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}"
     ]
   },
-  "notes": "Upstream events reconstructed from the issue's description ('no .done handling'). Corner case: arguments only on .done events."
+  "notes": "Upstream events reconstructed from the issue's description ('no .done handling'). Corner case: arguments only on .done events.",
+  "examples": {
+    "bad": {
+      "comments": [],
+      "events": [
+        {
+          "message": {
+            "content": [],
+            "id": "msg_091ec062-2aae-4cec-a1ed-dfcf1bd5c272",
+            "model": "customs-responses",
+            "role": "assistant",
+            "stop_reason": null,
+            "stop_sequence": null,
+            "type": "message",
+            "usage": {
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 0,
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          },
+          "type": "message_start"
+        },
+        {
+          "content_block": {
+            "id": "call_1",
+            "input": {},
+            "name": "get_weather",
+            "type": "tool_use"
+          },
+          "index": 0,
+          "type": "content_block_start"
+        },
+        {
+          "content_block": {
+            "id": "call_2",
+            "input": {},
+            "name": "get_weather",
+            "type": "tool_use"
+          },
+          "index": 1,
+          "type": "content_block_start"
+        },
+        {
+          "content_block": {
+            "id": "call_3",
+            "input": {},
+            "name": "get_weather",
+            "type": "tool_use"
+          },
+          "index": 2,
+          "type": "content_block_start"
+        },
+        {
+          "delta": {
+            "stop_reason": "end_turn",
+            "stop_sequence": null
+          },
+          "type": "message_delta",
+          "usage": {
+            "input_tokens": 1,
+            "output_tokens": 1
+          }
+        },
+        {
+          "type": "message_stop"
+        }
+      ]
+    }
+  }
 }

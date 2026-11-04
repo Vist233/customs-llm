@@ -179,6 +179,10 @@ func (r *Runner) Run(ctx context.Context, c *testset.Case) CaseResult {
 	if r.Dump {
 		res.Observed = obs
 	}
+	// A gateway that failed on the mock did not get as far as what the case looks at, so nothing can be concluded.
+	if (c.Direction == "response" || c.Direction == "stream") && resp.StatusCode >= 400 {
+		return done(Inconclusive, "gateway answered %d to the mock reply: %s", resp.StatusCode, snippet(raw))
+	}
 	v := checks.EvaluateCase(c, obs)
 	if r.Sink != nil {
 		defer func() {

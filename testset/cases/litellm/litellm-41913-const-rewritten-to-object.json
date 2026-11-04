@@ -60,5 +60,39 @@
       "why": "the pinned value must stay expressible in the forwarded schema"
     }
   ],
-  "observed": "const is forwarded as {'type': 'object'}, so a pinned value becomes unconstrained."
+  "observed": "const is forwarded as {'type': 'object'}, so a pinned value becomes unconstrained.",
+  "examples": {
+    "bad": {
+      "contents": [
+        {
+          "parts": [
+            {
+              "text": "pay"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "tools": [
+        {
+          "function_declarations": [
+            {
+              "name": "pay",
+              "parameters": {
+                "properties": {
+                  "currency": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "currency"
+                ],
+                "type": "object"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
 }

@@ -163,3 +163,54 @@ func TestOnChangeAndTiming(t *testing.T) {
 	}
 	_ = model.TierWire
 }
+
+func TestRelayPassesFaultsThrough(t *testing.T) {
+	_, _, rs, st := setup(t)
+	post := func(model string) (*http.Response, error) {
+		return http.Post(rs.URL+"/up/chat/completions", "application/json", strings.NewReader(`{"model":"`+model+`","stream":true}`))
+	}
+	if _, err := post("fault-reset"); err == nil {
+		t.Error("client should see the connection drop, not a 502")
+	}
+	resp, err := post("fault-reset-midstream")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := io.ReadAll(resp.Body); err == nil {
+		t.Error("client should see the stream break, not a clean end")
+	}
+	resp.Body.Close()
+	resp, err = post("fault-no-terminal")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	settled(t, st, store.Filter{})
+	byModel := map[string]string{}
+	list, _ := st.ListTraces(context.Background(), store.Filter{})
+	for _, tr := range list {
+		byModel[tr.Model] = tr.State
+	}
+	want := map[string]string{"fault-reset": "transport_error", "fault-reset-midstream": "transport_error", "fault-no-terminal": "incomplete"}
+	for m, s := range want {
+		if byModel[m] != s {
+			t.Errorf("%s: state %q, want %q (%v)", m, byModel[m], s, byModel)
+		}
+	}
+}
+
+func TestRelayFlagsRepeats(t *testing.T) {
+	_, _, rs, st := setup(t)
+	for i := 0; i < 3; i++ {
+		resp, err := http.Post(rs.URL+"/up/chat/completions", "application/json", strings.NewReader(`{"model":"same"}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+	}
+	list := settled(t, st, store.Filter{})
+	if len(list) != 3 || len(list[0].Flags) != 1 || list[0].Flags[0] != "相同请求第 3 次" || len(list[2].Flags) != 0 {
+		t.Fatalf("%+v", list)
+	}
+}

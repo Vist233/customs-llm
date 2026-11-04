@@ -60,5 +60,22 @@
       "text": "This is the document content the model should see."
     }
   ],
-  "observed": "Model receives only the trailing text block and answers as if no document was given. No error or warning."
+  "observed": "Model receives only the trailing text block and answers as if no document was given. No error or warning.",
+  "examples": {
+    "bad": {
+      "inferenceConfig": {
+        "maxTokens": 64
+      },
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "Summarize the document."
+            }
+          ],
+          "role": "user"
+        }
+      ]
+    }
+  }
 }

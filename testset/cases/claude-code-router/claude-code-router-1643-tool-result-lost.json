@@ -74,5 +74,37 @@
     }
   ],
   "observed": "Upstream rejects the next turn with 'No tool output found for tool call'; the result is not linked to the prior function call.",
-  "notes": "Single tool call, not a parallel-ordering problem."
+  "notes": "Single tool call, not a parallel-ordering problem.",
+  "examples": {
+    "good": {
+      "include": [
+        "reasoning.encrypted_content"
+      ],
+      "input": [
+        {
+          "content": [
+            {
+              "text": "load the skill",
+              "type": "input_text"
+            }
+          ],
+          "role": "user",
+          "type": "message"
+        },
+        {
+          "arguments": "{\"skill\": \"docx\"}",
+          "call_id": "call_00_x",
+          "name": "Skill",
+          "type": "function_call"
+        },
+        {
+          "call_id": "call_00_x",
+          "output": "skill loaded",
+          "type": "function_call_output"
+        }
+      ],
+      "max_output_tokens": 64,
+      "model": "customs-responses"
+    }
+  }
 }

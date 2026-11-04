@@ -50,5 +50,118 @@
       "{\"type\":\"response.completed\",\"sequence_number\":4,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"completed\",\"model\":\"m\",\"output\":[{\"type\":\"message\",\"id\":\"msg_1\",\"role\":\"assistant\",\"status\":\"completed\",\"content\":[{\"type\":\"output_text\",\"text\":\"Sunny in Paris.\",\"annotations\":[{\"type\":\"url_citation\",\"url\":\"https://a.example\",\"title\":\"A\",\"start_index\":0,\"end_index\":5}]}]}],\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}"
     ]
   },
-  "notes": "The issue's mock stream is truncated in the text we read; events after annotation.added are reconstructed."
+  "notes": "The issue's mock stream is truncated in the text we read; events after annotation.added are reconstructed.",
+  "examples": {
+    "good": {
+      "comments": [],
+      "events": [
+        {
+          "model": "customs-responses",
+          "response": {
+            "created_at": 0,
+            "id": "resp_EEU31sbj2B2YSAqATcBNHfPg9Ta7REHzR1KJsc9m4XjMxXipYciMsnHmiOLTc9dP9u7S293wu2XhmFYPa0LDDVkrsv5TKPVD_RIdzJ_XMxgiUBxGR01nF_ePVc0gEDV_nt3LrTWTIcmtlOXwoPjmW7Kt3dQukPs8ytKW4N6dpYS7aKbpMq1ux8Ih7tcQpt2srcy11nlIBmW6Y8UG6tCu3MUvFGO0nCWqjfAfbU8JVmHp-Pkycw6FScu4wNuYQK3vXMDIKoChmXB0M04CucnNTdX3aCwkd5RAXrjMvuSLfhEkdn69sotnqWHbBKSAcKr5cN6fxXn8nKmKpdf0uSzETRNAP_9NXWuUOx1-apfh7428Fs6WnEKrXkJA5BEFB3-yJS0=",
+            "model": "m",
+            "object": "response",
+            "output": [],
+            "status": "in_progress"
+          },
+          "sequence_number": 0,
+          "type": "response.created"
+        },
+        {
+          "content_index": 0,
+          "delta": "Sunny in Paris.",
+          "item_id": "msg_1",
+          "model": "customs-responses",
+          "output_index": 0,
+          "sequence_number": 1,
+          "type": "response.output_text.delta"
+        },
+        {
+          "annotation": {
+            "end_index": 5,
+            "start_index": 0,
+            "title": "A",
+            "type": "url_citation",
+            "url": "https://a.example"
+          },
+          "annotation_index": 0,
+          "content_index": 0,
+          "item_id": "msg_1",
+          "model": "customs-responses",
+          "output_index": 0,
+          "sequence_number": 2,
+          "type": "response.output_text.annotation.added"
+        },
+        {
+          "item": {
+            "content": [
+              {
+                "annotations": [
+                  {
+                    "end_index": 5,
+                    "start_index": 0,
+                    "title": "A",
+                    "type": "url_citation",
+                    "url": "https://a.example"
+                  }
+                ],
+                "text": "Sunny in Paris.",
+                "type": "output_text"
+              }
+            ],
+            "id": "msg_1",
+            "role": "assistant",
+            "status": "completed",
+            "type": "message"
+          },
+          "model": "customs-responses",
+          "output_index": 0,
+          "sequence_number": 3,
+          "type": "response.output_item.done"
+        },
+        {
+          "model": "customs-responses",
+          "response": {
+            "created_at": 0,
+            "id": "resp_EEU31sbj2B2YSAqATcBNHfPg9Ta7REHzR1KJsc9m4XjMxXipYciMsnHmiOLTc9dP9u7S293wu2XhmFYPa0LDDVkrsv5TKPVD_RIdzJ_XMxgiUBxGR01nF_ePVc0gEDV_nt3LrTWTIcmtlOXwoPjmW7Kt3dQukPs8ytKW4N6dpYS7aKbpMq1ux8Ih7tcQpt2srcy11nlIBmW6Y8UG6tCu3MUvFGO0nCWqjfAfbU8JVmHp-Pkycw6FScu4wNuYQK3vXMDIKoChmXB0M04CucnNTdX3aCwkd5RAXrjMvuSLfhEkdn69sotnqWHbBKSAcKr5cN6fxXn8nKmKpdf0uSzETRNAP_9NXWuUOx1-apfh7428Fs6WnEKrXkJA5BEFB3-yJS0=",
+            "model": "m",
+            "object": "response",
+            "output": [
+              {
+                "content": [
+                  {
+                    "annotations": [
+                      {
+                        "end_index": 5,
+                        "start_index": 0,
+                        "title": "A",
+                        "type": "url_citation",
+                        "url": "https://a.example"
+                      }
+                    ],
+                    "text": "Sunny in Paris.",
+                    "type": "output_text"
+                  }
+                ],
+                "id": "msg_1",
+                "role": "assistant",
+                "status": "completed",
+                "type": "message"
+              }
+            ],
+            "status": "completed",
+            "usage": {
+              "input_tokens": 1,
+              "output_tokens": 1,
+              "total_tokens": 2
+            }
+          },
+          "sequence_number": 4,
+          "type": "response.completed"
+        },
+        "[DONE]"
+      ]
+    }
+  }
 }

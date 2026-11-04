@@ -20,6 +20,9 @@ func tok(n float64) string {
 }
 
 func dur(ms float64) string {
+	if ms <= 0 {
+		return "-"
+	}
 	if ms >= 1000 {
 		return fmt.Sprintf("%.2fs", ms/1000)
 	}
@@ -75,12 +78,18 @@ func cmdTraces(args []string) error {
 			fmt.Println("没有记录")
 			return nil
 		}
-		fmt.Printf("%-16s %-8s %-9s %-34s %-12s %9s %s\n", "ID", "时间", "状态", "请求", "目标", "耗时", "in/out/cache")
+		fmt.Printf("%-16s %-8s %-9s %-34s %-12s %9s %-14s %s\n", "ID", "时间", "状态", "请求", "目标", "耗时", "in/out/cache", "标记")
 		for _, t := range list {
 			started, _ := time.Parse(time.RFC3339Nano, fmt.Sprint(t["started"]))
 			u := t["usage"].(map[string]any)
-			fmt.Printf("%-16v %-8s %-9s %-34s %-12v %9s %s/%s/%s\n", t["id"], started.Local().Format("15:04:05"), stateLabel[fmt.Sprint(t["state"])],
-				trunc(fmt.Sprint(t["method"])+" "+fmt.Sprint(t["path"]), 34), t["target"], dur(t["ms"].(float64)), tok(u["in"].(float64)), tok(u["out"].(float64)), tok(u["cache_read"].(float64)))
+			var flags []string
+			if fl, ok := t["flags"].([]any); ok {
+				for _, x := range fl {
+					flags = append(flags, fmt.Sprint(x))
+				}
+			}
+			fmt.Printf("%-16v %-8s %-9s %-34s %-12v %9s %-14s %s\n", t["id"], started.Local().Format("15:04:05"), stateLabel[fmt.Sprint(t["state"])],
+				trunc(fmt.Sprint(t["method"])+" "+fmt.Sprint(t["path"]), 34), t["target"], dur(t["ms"].(float64)), tok(u["in"].(float64))+"/"+tok(u["out"].(float64))+"/"+tok(u["cache_read"].(float64)), strings.Join(flags, " "))
 		}
 		return nil
 	case "show":

@@ -60,5 +60,29 @@
       ]
     }
   },
-  "notes": "Corner case: absent versus zero."
+  "notes": "Corner case: absent versus zero.",
+  "examples": {
+    "bad": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "hello",
+            "role": "assistant"
+          },
+          "provider_specific_fields": {}
+        }
+      ],
+      "created": 1,
+      "id": "c",
+      "model": "customs-chat",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 0,
+        "prompt_tokens": 0,
+        "total_tokens": 0
+      }
+    }
+  }
 }

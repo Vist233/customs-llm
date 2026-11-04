@@ -1,6 +1,7 @@
 "use strict";
 // customs-llm web UI: no build step, no dependencies.
 const TOKEN = document.querySelector('meta[name="customs-token"]').content;
+const UI_TOKEN = document.querySelector('meta[name="customs-ui-token"]').content;
 const $app = document.getElementById("app");
 const STATE_LABEL = { ok: "成功", http_error: "HTTP 错误", transport_error: "连接失败", incomplete: "流未结束", running: "进行中" };
 const TIER_LABEL = { wire: "亲眼所见", reported: "网关自述", inferred: "推断" };
@@ -349,4 +350,26 @@ const live = debounce(() => {
   if (h === "/") refreshList();
   else if (h.startsWith("/trace/")) viewTrace(h.slice(7));
 }, 300);
+// Plans that want to change a gateway wait here for a person.
+async function refreshPlans() {
+  const el = document.getElementById("plans");
+  let list = [];
+  try { list = await getJSON("/api/plans?state=pending"); } catch { return; }
+  const sig = list.map((p) => p.id).join(",");
+  if (el.dataset.sig === sig) return;
+  el.dataset.sig = sig;
+  el.innerHTML = list.map((p) => `<div class="card" style="margin:12px 20px;border-color:var(--warn)">
+    <h3>待批准:修改网关 ${esc(p.driver)} ${esc(p.url)}</h3>
+    <div class="hint">将新增 ${p.actions.length} 个临时测试条目,不改已有配置,跑完自动删除。请确认这不是生产环境。假上游会收到网关发来的请求。</div>
+    <pre>${esc(p.actions.join("\n"))}</pre>
+    <div class="bar" style="margin:10px 0 0"><button class="on" data-plan="${esc(p.id)}" data-do="approve">批准</button><button data-plan="${esc(p.id)}" data-do="reject">拒绝</button></div></div>`).join("");
+  el.querySelectorAll("[data-plan]").forEach((b) => (b.onclick = async () => {
+    await api(`/api/plans/${b.dataset.plan}/${b.dataset.do}`, { method: "POST", headers: { "X-Customs-Token": TOKEN, "X-Customs-UI-Token": UI_TOKEN } });
+    refreshPlans();
+  }));
+}
+refreshPlans();
+setInterval(refreshPlans, 3000);
+// Probes write to the store from another process, so the list also refreshes on a timer.
+setInterval(() => { if ((location.hash.replace(/^#/, "") || "/") === "/") refreshList(); }, 5000);
 try { const es = new EventSource("/api/stream"); es.addEventListener("trace", live); } catch {}

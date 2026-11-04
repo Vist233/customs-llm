@@ -56,5 +56,41 @@
       "{\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"m\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}",
       "[DONE]"
     ]
+  },
+  "examples": {
+    "bad": {
+      "comments": [],
+      "events": [
+        {
+          "choices": [
+            {
+              "delta": {
+                "content": "",
+                "role": "assistant"
+              },
+              "index": 0
+            }
+          ],
+          "created": 1793782468,
+          "id": "c1",
+          "model": "customs-chat",
+          "object": "chat.completion.chunk"
+        },
+        {
+          "choices": [
+            {
+              "delta": {},
+              "finish_reason": "stop",
+              "index": 0
+            }
+          ],
+          "created": 1793782468,
+          "id": "c1",
+          "model": "customs-chat",
+          "object": "chat.completion.chunk"
+        },
+        "[DONE]"
+      ]
+    }
   }
 }

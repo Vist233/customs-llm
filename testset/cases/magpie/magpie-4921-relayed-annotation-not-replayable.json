@@ -84,5 +84,62 @@
       }
     }
   },
-  "notes": "Corner case: the output is valid to read but invalid to replay. The failure shows up one turn later."
+  "notes": "Corner case: the output is valid to read but invalid to replay. The failure shows up one turn later.",
+  "examples": {
+    "bad": {
+      "created_at": 0,
+      "error": null,
+      "id": "resp_c3gH_IqTLtChbnRqL81l9-Ij4ZYUppqANUuC5-1bujXuYwQxu9OEcF-scX6ZUFbj65brNvRO5D7cPNMiMQx-ksPyPw550de2J3Pe-X3OPaWM6ChsIlH4Nk92rqmKk0hJ1ZHGBa4QdUPg2aVRgqZME4QXsk2XoDR25nlgBSmRal40x6Q6iKR8t0dMlUHgNVPYrI2-3HMEpWBuZ0RKTfQRL_2Jk4mnVtU31g6uSsJdRTj-pFioeNdU4AZRtpYNUyz0OejcnpYQQ0Ed5Qf_1TUgOpCr-4YFo20tcDhyQ9EKb8he-IXxMfKT1UQthmRWuEHPezTAQCTWUPFwkN4loQ50Vh1II7NDqNK9KtwmV06Pu6AsSWe6OxUYetTy27VLsASplKU=",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "metadata": null,
+      "model": "customs-responses",
+      "object": "response",
+      "output": [
+        {
+          "content": [
+            {
+              "annotations": [
+                {
+                  "publish_time": "2026-10-01",
+                  "site_name": "S",
+                  "summary": "x",
+                  "title": "T",
+                  "type": "url_citation",
+                  "url": "https://u.example"
+                }
+              ],
+              "text": "hello",
+              "type": "output_text"
+            }
+          ],
+          "id": "msg_1",
+          "role": "assistant",
+          "status": "completed",
+          "type": "message"
+        }
+      ],
+      "parallel_tool_calls": null,
+      "previous_response_id": null,
+      "reasoning": null,
+      "status": "completed",
+      "store": null,
+      "temperature": null,
+      "text": null,
+      "tool_choice": null,
+      "tools": null,
+      "top_p": null,
+      "truncation": null,
+      "usage": {
+        "cost": null,
+        "input_tokens": 1,
+        "input_tokens_details": null,
+        "output_tokens": 1,
+        "output_tokens_details": null,
+        "total_tokens": 2
+      },
+      "user": null
+    }
+  }
 }

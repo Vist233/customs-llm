@@ -38,5 +38,11 @@
       "out": "$.moderation"
     }
   ],
-  "observed": "Moderation never runs; an invalid moderation model also returns 200, proving the parameter never reaches OpenAI. Sent through extra_body it works."
+  "observed": "Moderation never runs; an invalid moderation model also returns 200, proving the parameter never reaches OpenAI. Sent through extra_body it works.",
+  "examples": {
+    "bad": {
+      "input": "What is the weather in Berlin tomorrow?",
+      "model": "customs-responses"
+    }
+  }
 }

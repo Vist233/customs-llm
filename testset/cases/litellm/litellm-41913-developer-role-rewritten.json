@@ -45,5 +45,20 @@
       "value": "developer"
     }
   ],
-  "observed": "The upstream accepts developer directly (200 when sent by hand), so the rewrite changes prompt semantics for no reason."
+  "observed": "The upstream accepts developer directly (200 when sent by hand), so the rewrite changes prompt semantics for no reason.",
+  "examples": {
+    "bad": {
+      "messages": [
+        {
+          "content": "Be terse.",
+          "role": "system"
+        },
+        {
+          "content": "hi",
+          "role": "user"
+        }
+      ],
+      "model": "customs-chat"
+    }
+  }
 }

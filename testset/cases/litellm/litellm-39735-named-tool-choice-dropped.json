@@ -67,5 +67,36 @@
       "out": "$.tool_choice"
     }
   ],
-  "observed": "Request reaches Mistral with tools and no tool_choice; the model answers in plain text and an agent loop that pins the first tool stalls. No warning is logged."
+  "observed": "Request reaches Mistral with tools and no tool_choice; the model answers in plain text and an agent loop that pins the first tool stalls. No warning is logged.",
+  "examples": {
+    "bad": {
+      "messages": [
+        {
+          "content": "Say hello and nothing else.",
+          "role": "user"
+        }
+      ],
+      "model": "customs-chat",
+      "tools": [
+        {
+          "function": {
+            "description": "Get weather",
+            "name": "get_weather",
+            "parameters": {
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "function"
+        }
+      ]
+    }
+  }
 }

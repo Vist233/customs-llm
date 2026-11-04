@@ -46,5 +46,53 @@
       "{\"type\":\"response.completed\",\"sequence_number\":1,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"completed\",\"model\":\"m\",\"output\":[],\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}"
     ]
   },
-  "notes": "Corner case: intermittent. The case needs repeating several times to be meaningful."
+  "notes": "Corner case: intermittent. The case needs repeating several times to be meaningful.",
+  "examples": {
+    "bad": {
+      "comments": [],
+      "events": [
+        {
+          "model": "customs-responses",
+          "plan_type": "plus",
+          "type": "codex.rate_limits"
+        },
+        {
+          "model": "customs-responses",
+          "type": "codex.response.metadata"
+        },
+        {
+          "model": "customs-responses",
+          "response": {
+            "created_at": 0,
+            "id": "resp_WVL7wEGUbqfoVm3co2eshlprCzBUnN4zVRlCcDrK0ZK0eRp8oS_gtylRfX3SvR_27PZ5MNXUKrvhZnA5kH3z6aSL_IUiJAD7OXF34NU_zTDJ7DEH9IRe-ohRDOFeLgWafuv6mmyij1ICNrrZrFVBLX70RtBDY9cLI0F4sm7_IZ6mqGPc4aChZJi_Z0jwG2Zo7w-fUpwpaKTkkfCRPfOAo7L8web2A_mRPZ0WpuXx1cbMxxXVuDKazjIk3exBy-9XNJ51_5hfkq4rcvXCrECJ0oIOCIESVoLLaLN_i1YCX6tjzgM74NZKmhazATrJy-839R-ipRFoueYe5W6dxwnMLk_WCsKf87lOoXCF9rfxrJaLzb9c1woiUYOYZ1c61BkgHYU=",
+            "model": "m",
+            "object": "response",
+            "output": [],
+            "status": "in_progress"
+          },
+          "sequence_number": 0,
+          "type": "response.created"
+        },
+        {
+          "model": "customs-responses",
+          "response": {
+            "created_at": 0,
+            "id": "resp_WVL7wEGUbqfoVm3co2eshlprCzBUnN4zVRlCcDrK0ZK0eRp8oS_gtylRfX3SvR_27PZ5MNXUKrvhZnA5kH3z6aSL_IUiJAD7OXF34NU_zTDJ7DEH9IRe-ohRDOFeLgWafuv6mmyij1ICNrrZrFVBLX70RtBDY9cLI0F4sm7_IZ6mqGPc4aChZJi_Z0jwG2Zo7w-fUpwpaKTkkfCRPfOAo7L8web2A_mRPZ0WpuXx1cbMxxXVuDKazjIk3exBy-9XNJ51_5hfkq4rcvXCrECJ0oIOCIESVoLLaLN_i1YCX6tjzgM74NZKmhazATrJy-839R-ipRFoueYe5W6dxwnMLk_WCsKf87lOoXCF9rfxrJaLzb9c1woiUYOYZ1c61BkgHYU=",
+            "model": "m",
+            "object": "response",
+            "output": [],
+            "status": "completed",
+            "usage": {
+              "input_tokens": 1,
+              "output_tokens": 1,
+              "total_tokens": 2
+            }
+          },
+          "sequence_number": 1,
+          "type": "response.completed"
+        },
+        "[DONE]"
+      ]
+    }
+  }
 }

@@ -49,5 +49,28 @@
       "text": "This is a mid-turn system message"
     }
   ],
-  "observed": "Upstream body has neither systemInstruction nor any trace of the system text; the two user messages are merged into one turn."
+  "observed": "Upstream body has neither systemInstruction nor any trace of the system text; the two user messages are merged into one turn.",
+  "examples": {
+    "good": {
+      "contents": [
+        {
+          "parts": [
+            {
+              "text": "hi"
+            },
+            {
+              "text": "This is a mid-turn system message"
+            },
+            {
+              "text": "hello"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "generationConfig": {
+        "max_output_tokens": 10
+      }
+    }
+  }
 }

@@ -42,5 +42,21 @@
       "why": "chat/completions only accepts type=function; unmappable tools must be dropped or rejected locally"
     }
   ],
-  "observed": "Upstream returns 400 expected \"function\" at tools.0.type; every Codex CLI request carries such tools."
+  "observed": "Upstream returns 400 expected \"function\" at tools.0.type; every Codex CLI request carries such tools.",
+  "examples": {
+    "good": {
+      "max_tokens": 8,
+      "messages": [
+        {
+          "content": "hi",
+          "role": "user"
+        }
+      ],
+      "model": "customs-chat",
+      "web_search_options": {
+        "search_context_size": null,
+        "user_location": null
+      }
+    }
+  }
 }

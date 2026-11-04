@@ -83,5 +83,49 @@
     }
   ],
   "observed": "Upstream returns 400 'Only text and image_url are supported.'; the nested function_call part is sent as message content.",
-  "notes": "Corner case: a function_call nested in message content is unusual; most clients put it at the top level."
+  "notes": "Corner case: a function_call nested in message content is unusual; most clients put it at the top level.",
+  "examples": {
+    "bad": {
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "run command",
+              "type": "text"
+            }
+          ],
+          "role": "user"
+        },
+        {
+          "content": [
+            {
+              "text": "ok",
+              "type": "text"
+            }
+          ],
+          "role": "assistant"
+        },
+        {
+          "content": "done",
+          "role": "tool",
+          "tool_call_id": "call_1"
+        }
+      ],
+      "model": "customs-chat",
+      "tools": [
+        {
+          "function": {
+            "description": "runs a command",
+            "name": "shell_command",
+            "parameters": {
+              "properties": {},
+              "type": "object"
+            },
+            "strict": false
+          },
+          "type": "function"
+        }
+      ]
+    }
+  }
 }

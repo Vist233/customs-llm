@@ -43,5 +43,42 @@
       "{\"type\":\"response.created\",\"sequence_number\":0,\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":0,\"status\":\"in_progress\",\"model\":\"gpt-4.1\",\"output\":[]}}",
       "{\"type\":\"error\",\"sequence_number\":1,\"code\":\"invalid_prompt\",\"message\":\"Invalid prompt: your prompt was flagged.\",\"param\":null}"
     ]
+  },
+  "examples": {
+    "good": {
+      "comments": [],
+      "events": [
+        {
+          "model": "customs-responses",
+          "response": {
+            "created_at": 0,
+            "id": "resp_1fxlwiDcF5Nry4K7QnaPmo8sP6HgfmTLU_qZoHwyciPxE9iPNuizo5XmQeMIF0btRMc_li_bDbWsLZjGLavG5T-2soWe8vIkYrDpLIoy4wOeOM5XorrV9WxVuWcWZ_BvkHJp0b44sTAH9HYHbPl_LNcqcJebwsA73rKGZGIB8yfTYpKTdPSeO4n9wjJNkZyk-XchAqcPTg8UPpOJbcjssDocAlXYTKrSsihkZUrnpk83q6YdO8h1szNRecODyHYrEAMjSZx3bCvQF-x7sFA_26nm-TXhmAgZVrS0QJmlfeXLbCkMX8mKNzjVviIMdgHeCNTnK7N0ysc8Up-Ozuvc4I-bR41g3iYfBmFeJ5LotIGGElEUhjfSGOsArXwr0zkc8oM=",
+            "model": "gpt-4.1",
+            "object": "response",
+            "output": [],
+            "status": "in_progress"
+          },
+          "sequence_number": 0,
+          "type": "response.created"
+        },
+        {
+          "response": {
+            "created_at": 0,
+            "error": {
+              "code": "invalid_prompt",
+              "message": "Invalid prompt: your prompt was flagged."
+            },
+            "id": "resp_1fxlwiDcF5Nry4K7QnaPmo8sP6HgfmTLU_qZoHwyciPxE9iPNuizo5XmQeMIF0btRMc_li_bDbWsLZjGLavG5T-2soWe8vIkYrDpLIoy4wOeOM5XorrV9WxVuWcWZ_BvkHJp0b44sTAH9HYHbPl_LNcqcJebwsA73rKGZGIB8yfTYpKTdPSeO4n9wjJNkZyk-XchAqcPTg8UPpOJbcjssDocAlXYTKrSsihkZUrnpk83q6YdO8h1szNRecODyHYrEAMjSZx3bCvQF-x7sFA_26nm-TXhmAgZVrS0QJmlfeXLbCkMX8mKNzjVviIMdgHeCNTnK7N0ysc8Up-Ozuvc4I-bR41g3iYfBmFeJ5LotIGGElEUhjfSGOsArXwr0zkc8oM=",
+            "model": "gpt-4.1",
+            "object": "response",
+            "output": [],
+            "status": "failed"
+          },
+          "sequence_number": 1,
+          "type": "response.failed"
+        },
+        "[DONE]"
+      ]
+    }
   }
 }

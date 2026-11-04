@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -14,12 +13,12 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"sort"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/Vist233/customs-llm/internal/api"
+	"github.com/Vist233/customs-llm/internal/collect"
 	"github.com/Vist233/customs-llm/internal/model"
 	"github.com/Vist233/customs-llm/internal/relay"
 	"github.com/Vist233/customs-llm/internal/store"
@@ -105,6 +104,9 @@ func cmdUp(args []string) error {
 	data := fs.String("data", defaultDataDir(), "data directory")
 	relayAddr := fs.String("relay-listen", "127.0.0.1:9000", "address of the recording relay")
 	uiAddr := fs.String("ui-listen", "127.0.0.1:7070", "address of the web UI and API")
+	litellmURL := fs.String("litellm-url", "", "read this LiteLLM's spend logs (needs its database and an admin key)")
+	litellmKey := fs.String("litellm-key", os.Getenv("CUSTOMS_LITELLM_KEY"), "admin key for --litellm-url (default: $CUSTOMS_LITELLM_KEY)")
+	opencodeDB := fs.String("opencode-db", collect.DefaultOpenCodeDB(), "opencode session database to read; empty turns it off")
 	var targets multi
 	fs.Var(&targets, "target", "relay target NAME=UPSTREAM_URL (repeatable)")
 	_ = fs.Parse(args)
@@ -142,6 +144,14 @@ func cmdUp(args []string) error {
 	}
 	saveTargets(*data, rl)
 
+	var collectors []collect.Collector
+	if *opencodeDB != "" {
+		collectors = append(collectors, &collect.OpenCode{Path: *opencodeDB, Store: st, OnChange: hub.Publish})
+	}
+	if *litellmURL != "" {
+		collectors = append(collectors, &collect.LiteLLM{URL: *litellmURL, Key: *litellmKey, Store: st, OnChange: hub.Publish})
+	}
+
 	tokBytes := make([]byte, 16)
 	_, _ = rand.Read(tokBytes)
 	token := hex.EncodeToString(tokBytes)
@@ -151,7 +161,7 @@ func cmdUp(args []string) error {
 	}
 	srv := &api.Server{Store: st, Relay: rl, Hub: hub, Token: token, Testset: ts, Guide: guideText,
 		Info: func() api.Info {
-			return api.Info{Version: version, DataDir: *data, RelayListen: *relayAddr, UIListen: *uiAddr, Sources: sources(rl)}
+			return api.Info{Version: version, DataDir: *data, RelayListen: *relayAddr, UIListen: *uiAddr, Sources: sources(rl, collectors)}
 		},
 		OnTargets: func() { saveTargets(*data, rl) }}
 
@@ -174,7 +184,12 @@ func cmdUp(args []string) error {
 	if err := os.WriteFile(dfPath, b, 0o600); err != nil {
 		return err
 	}
-	defer os.Remove(dfPath)
+	defer func() {
+		// Only remove our own file: a newer daemon may already have replaced it.
+		if cur, err := os.ReadFile(dfPath); err == nil && string(cur) == string(b) {
+			_ = os.Remove(dfPath)
+		}
+	}()
 	fmt.Printf("customs-llm %s\n  界面   http://%s\n  中转   http://%s/<目标名>/...\n  数据   %s\n", version, df.UI, df.Relay, *data)
 	if len(rl.Targets()) == 0 {
 		fmt.Println("  目标   (还没有)  添加: customs target add NAME http://127.0.0.1:4000")
@@ -185,6 +200,9 @@ func cmdUp(args []string) error {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	for _, c := range collectors {
+		go collect.Run(ctx, c, 10*time.Second, "每 10 秒读取一次")
+	}
 	<-ctx.Done()
 	sctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -193,17 +211,32 @@ func cmdUp(args []string) error {
 	return nil
 }
 
-func sources(rl *relay.Relay) []api.Source {
+func sources(rl *relay.Relay, collectors []collect.Collector) []api.Source {
 	n := len(rl.Targets())
 	detail := fmt.Sprintf("%d 个目标", n)
 	if n == 0 {
 		detail = "还没有目标;添加后让客户端经过它"
 	}
-	return []api.Source{
-		{Name: "relay", Kind: "relay", Tier: model.TierWire, Status: "running", Detail: detail},
-		{Name: "litellm-spend-logs", Kind: "collector", Tier: model.TierReported, Status: "idle", Detail: "未配置;需要 LiteLLM 地址和管理员 key"},
-		{Name: "opencode-log", Kind: "collector", Tier: model.TierReported, Status: "idle", Detail: "未启用"},
+	out := []api.Source{{Name: "relay", Kind: "relay", Tier: model.TierWire, Status: "running", Detail: detail}}
+	seen := map[string]bool{}
+	for _, c := range collectors {
+		state, d, imported := c.State().Get()
+		if state == "" {
+			state, d = "running", "启动中"
+		}
+		if state == "running" {
+			d = fmt.Sprintf("%s,已导入 %d 条", d, imported)
+		}
+		seen[c.Name()] = true
+		out = append(out, api.Source{Name: c.Name(), Kind: "collector", Tier: model.TierReported, Status: state, Detail: d})
 	}
+	if !seen["litellm-spend-logs"] {
+		out = append(out, api.Source{Name: "litellm-spend-logs", Kind: "collector", Tier: model.TierReported, Status: "idle", Detail: "未配置;用 --litellm-url 和 --litellm-key 开启"})
+	}
+	if !seen["opencode-db"] {
+		out = append(out, api.Source{Name: "opencode-db", Kind: "collector", Tier: model.TierReported, Status: "idle", Detail: "未开启"})
+	}
+	return out
 }
 
 func targetsPath(dir string) string { return filepath.Join(dir, "targets.json") }
@@ -224,6 +257,3 @@ func saveTargets(dir string, rl *relay.Relay) {
 	b, _ := json.MarshalIndent(m, "", "  ")
 	_ = os.WriteFile(targetsPath(dir), b, 0o600)
 }
-
-var _ = errors.New
-var _ = sort.Strings
