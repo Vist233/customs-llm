@@ -51,6 +51,21 @@ magpie 上值得看的结果:
 
 大概率属于设计选择而不是缺陷的 FAIL:`#4899`(不转发自定义头)、`new-api#6981` 在 LiteLLM 上(重组流时丢 SSE 注释)、`#4482` 和 `#4921`(透传上游内容)。
 
+## opencode Go 真实服务(2026-11-04,deepseek-v4.1-flash)
+
+用本地打包的 dmg 内二进制,经中转访问真实的 opencode Go 接口(`https://opencode.ai/inference/go/openai/v1`),客户端是 Docker 里的 opencode 1.19.5。
+
+| 情形 | 中转看到(wire) | opencode 显示 |
+|---|---|---|
+| 正常请求 | 200,用量完整 | `Hi` |
+| 无效 key | 401 `Upstream request failed: Invalid credential`(type `server_error`) | 40 秒内没有任何输出,请求重试 5 次以上 |
+| 不存在的模型 | 400 `Upstream request failed: Model is unavailable.`(type `server_error`) | 同上,没有任何输出 |
+| 没带 `x-opencode-session` 头(直接 curl) | 400 `MissingSessionID`,正文给出了原因和文档链接 | 不适用(opencode 自己会带这个头) |
+
+这复现了最初的症状:客户端什么都不显示,而中转直接看到上游返回的真实原因。401 和 400 都被当成可重试错误,是因为这个接口把它们的 `type` 都写成了 `server_error`(这一点是推断,没有读 opencode 源码确认)。
+
+同一套二进制上,测试集结果与上表完全一致(LiteLLM 20/21/4/6,magpie 20/9/7/15),临时模型批准、拒绝未批准的计划、计划不可复用、跑完自动清理均验证通过。
+
 ## 局限
 
 - 假上游的回复多数是按 issue 描述重建的,流式用例的结论依赖它写得准不准。
